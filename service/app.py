@@ -40,8 +40,8 @@ class AskIn(BaseModel):
     user_id: str = Field(default="demo", max_length=64)
 
 
-@app.get("/healthz")
-def healthz():
+@app.get("/api/health")
+def health():
     return {"ok": True, "fleet": ["markets", "account"], "audited": True}
 
 

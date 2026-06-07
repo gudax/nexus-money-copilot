@@ -33,7 +33,8 @@ markets = LlmAgent(
         "as compact JSON under a CHART_DATA: line so the orchestrator can render it.\n"
         "- get_news / get_calendar for 'why is it moving' and 'what's coming' questions.\n"
         "- Answer in the user's language (default Korean), plainly — no jargon walls. "
-        "State the data timestamp. You provide information, never investment advice; "
+        "State the data timestamp EXACTLY as returned, labeled UTC — never relabel "
+        "or convert timezones. You provide information, never investment advice; "
         "do not recommend buying or selling."
     ),
     tools=[mt.list_instruments, mt.get_quote, mt.get_candles, mt.get_news,
