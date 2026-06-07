@@ -3,3 +3,9 @@ __pycache__/
 *.pyc
 .DS_Store
 .env.demo
+.demo-ui.png
+film/_verify/
+film/take.webm
+film/vo/concat.txt
+film/vo/pad.wav
+film/vo/vo_full.wav

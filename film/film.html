@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>NEXUS Money Copilot — demo reel</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#fdfaf3;--paper-2:#f5efe0;--line:#e3dac4;--line-strong:#c9bd9d;
+    --ink:#24251f;--soft:#6e6a5c;--faint:#a39d8a;
+    --green:#1b4332;--green-soft:#2d6a4f;--red:#b3261e;--gold:#9a6200;
+    --serif:"Gowun Batang",serif;--sans:"IBM Plex Sans KR",sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:#000;color:var(--ink);
+    font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity .8s ease;background:var(--paper)}
+  .scene.on{opacity:1}
+  #preroll{position:absolute;inset:0;background:#000;z-index:99;opacity:1;transition:opacity .4s}
+  #preroll.off{opacity:0;pointer-events:none}
+  /* green ledger rule down every scene, passbook-style */
+  .scene::after{content:"";position:absolute;top:0;bottom:0;left:64px;width:6px;z-index:1;
+    border-left:2.5px solid var(--green);border-right:2.5px solid var(--green);opacity:.35;pointer-events:none}
+
+  /* title cards */
+  .titlecard{display:flex;flex-direction:column;justify-content:center;padding:0 190px}
+  .doc-rule{display:flex;align-items:baseline;gap:22px;border-bottom:4px solid var(--green);padding-bottom:14px;position:relative;z-index:2}
+  .doc-rule .org{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--green)}
+  .doc-rule .no{margin-left:auto;font-size:17px;color:var(--soft);text-align:right;line-height:1.5;font-family:var(--mono)}
+  .titlecard h1{font-family:var(--serif);font-weight:700;font-size:104px;line-height:1.16;margin-top:46px;position:relative;z-index:2}
+  .titlecard h1 em{font-style:normal;color:var(--green)}
+  .titlecard .sub{font-size:28px;line-height:1.6;color:var(--soft);margin-top:34px;max-width:1320px;position:relative;z-index:2}
+  .titlecard .sub b{color:var(--ink);font-weight:500}
+  .urls{margin-top:54px;font-size:23px;line-height:2;color:var(--soft);position:relative;z-index:2;font-family:var(--mono)}
+  .urls b{color:var(--green);font-weight:600}
+  .urls .dim{color:var(--faint);font-size:17px;margin-top:10px}
+  .vstamp{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:26px;
+    color:var(--green);border:3.5px solid var(--green);border-radius:6px;padding:10px 26px;
+    transform:rotate(-1.6deg);opacity:0;position:relative;z-index:2;
+    box-shadow:inset 0 0 0 2.5px var(--paper),inset 0 0 0 5px var(--green)}
+  .vstamp.red{color:var(--red);border-color:var(--red);
+    box-shadow:inset 0 0 0 2.5px var(--paper),inset 0 0 0 5px var(--red)}
+  .vstamp.in{animation:stamp-in .45s cubic-bezier(.2,1.4,.4,1) both}
+  @keyframes stamp-in{0%{transform:rotate(-1.6deg) scale(2.1);opacity:0}
+    60%{transform:rotate(-1.6deg) scale(.93);opacity:1}100%{transform:rotate(-1.6deg) scale(1);opacity:.95}}
+
+  /* terminal scenes */
+  .termscene{display:flex;flex-direction:column;padding:80px 130px;gap:30px}
+  .scenetitle{font-size:20px;letter-spacing:.13em;color:var(--soft);text-transform:uppercase;position:relative;z-index:2;
+    border-bottom:2.5px solid var(--green);padding-bottom:12px;font-family:var(--mono)}
+  .scenetitle b{color:var(--red);font-weight:600}
+  .term{flex:1;background:#161811;border:1.5px solid var(--ink);
+    padding:38px 46px;font-family:var(--mono);font-size:22.5px;line-height:1.66;overflow:hidden;position:relative;z-index:2;
+    box-shadow:8px 10px 0 rgba(27,67,50,.14)}
+  .term .ln{white-space:pre-wrap;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;color:#cfc9b6}
+  .term .ln.show{opacity:1;transform:none}
+  .term .ln.cmd{color:#fdfaf3;font-weight:500}
+  .term .ln.ok{color:#82c393}
+  .term .ln.veto{color:#e06a5e}
+  .term .ln.dim{color:#867f6d}
+  .exhibit-tag{position:absolute;top:64px;right:130px;font-size:15px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;z-index:3;font-family:var(--mono)}
+
+  /* architecture scene */
+  .archscene{display:flex;flex-direction:column;padding:74px 120px;gap:24px}
+  .arch{flex:1;position:relative;z-index:2}
+  .node{position:absolute;border:2.5px solid var(--ink);background:#fff;padding:18px 24px;
+    opacity:0;transform:translateY(10px);transition:all .55s;box-shadow:6px 8px 0 rgba(27,67,50,.10)}
+  .node.show{opacity:1;transform:none}
+  .node .k{font-size:14.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--soft);font-family:var(--mono)}
+  .node .t{font-family:var(--serif);font-size:27px;font-weight:700;margin-top:6px}
+  .node .d{font-size:16.5px;color:var(--soft);margin-top:6px;line-height:1.5}
+  .node.q{border-color:var(--green);background:var(--paper-2)}
+  .node.gate{border-color:var(--red);border-width:3px}
+  .node.gate .t{color:var(--red)}
+  .node .json{font-family:var(--mono);font-size:14.5px;color:var(--green-soft);margin-top:8px;line-height:1.5}
+  .a2a-tag{position:absolute;font-family:var(--mono);font-size:15px;font-weight:600;color:var(--gold);
+    letter-spacing:.1em;opacity:0;transition:opacity .5s}
+  .a2a-tag.show{opacity:1}
+  svg.wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  svg.wires path{stroke:var(--ink);stroke-width:2.5;fill:none;opacity:0;transition:opacity .5s}
+  svg.wires path.show{opacity:.7}
+  .arch .vstamp{position:absolute;font-size:21px;padding:8px 18px}
+  .tripchips{position:absolute;display:flex;gap:10px;flex-wrap:wrap;max-width:430px;opacity:0;transition:opacity .6s}
+  .tripchips.show{opacity:1}
+  .tripchips span{font-family:var(--mono);font-size:14px;border:1.5px solid var(--red);color:var(--red);
+    padding:4px 10px;border-radius:999px;background:#fff;text-decoration:line-through}
+
+  /* live clip scenes */
+  .clipscene{display:flex;flex-direction:column;padding:80px 130px;gap:30px}
+  .clipframe{flex:1;border:1.5px solid var(--ink);box-shadow:8px 10px 0 rgba(27,67,50,.12);
+    overflow:hidden;position:relative;z-index:2;background:var(--paper)}
+  .clipframe video{width:100%;height:100%;object-fit:cover;object-position:top}
+</style>
+</head>
+<body>
+  <div id="preroll"></div>
+
+  <section class="scene titlecard" id="s1">
+    <div class="doc-rule">
+      <span class="org">NEXUS 머니 코파일럿</span>
+      <span class="no">GOOGLE FOR STARTUPS · AI AGENTS CHALLENGE 2026<br>TRACK 1 BUILD · APAC · NEXUS AI LABS</span>
+    </div>
+    <h1>물어보면,<br><em>검증된 답</em>만 돌아옵니다.</h1>
+    <p class="sub">A personal-finance copilot for Korea's <b>50+ generation</b> —
+      an ADK multi-agent fleet over real A2A, grounded in a live exchange,
+      where <b>every answer is audited before it ships.</b></p>
+    <div style="margin-top:46px"><span class="vstamp" id="coverstamp">✓ 검증됨 · recorded run, real data</span></div>
+  </section>
+
+  <section class="scene termscene" id="s2">
+    <span class="exhibit-tag">Exhibit 1 · day zero, unguarded</span>
+    <div class="scenetitle"><b>01</b> · the incident — a worker crashed, and the model lied beautifully</div>
+    <div class="term" id="t-incident"></div>
+  </section>
+
+  <section class="scene archscene" id="s3">
+    <span class="exhibit-tag">Exhibit 2 · architecture</span>
+    <div class="scenetitle"><b>02</b> · the whole system — ADK · A2A · Vertex AI · Cloud Run</div>
+    <div class="arch" id="arch">
+      <svg class="wires" viewBox="0 0 1680 830" preserveAspectRatio="none">
+        <path id="w-q"  d="M 360 160 H 520" />
+        <path id="w-m"  d="M 800 140 C 920 100, 1000 80, 1120 100" />
+        <path id="w-a"  d="M 800 170 C 920 220, 1000 280, 1120 310" />
+        <path id="w-v"  d="M 800 200 C 900 330, 980 450, 1110 520" />
+        <path id="w-g1" d="M 1330 615 C 1280 660, 1180 675, 1075 655" />
+        <path id="w-g2" d="M 660 255 V 645 H 600" />
+        <path id="w-s"  d="M 840 725 V 765" />
+      </svg>
+      <div class="node q" id="n-q" style="left:60px;top:100px;width:300px">
+        <div class="k">question</div>
+        <div class="t">"비트코인 얼마야?"</div>
+        <div class="d">or a balance, a chart, a screenshot</div>
+      </div>
+      <div class="node" id="n-orch" style="left:520px;top:90px;width:280px">
+        <div class="k">orchestrator · Cloud Run</div>
+        <div class="t">ADK Agent</div>
+        <div class="d">Gemini on Vertex AI<br>fails closed on worker error</div>
+      </div>
+      <span class="a2a-tag" id="tag-a2a" style="left:870px;top:54px">A2A — live agent cards</span>
+      <div class="node" id="n-mkt" style="left:1120px;top:20px;width:430px">
+        <div class="k">specialist · A2A</div>
+        <div class="t">markets</div>
+        <div class="d">LMX exchange, live public API · 82 instruments</div>
+        <div class="json" id="j-mkt">{"symbol":"BTCUSD","price":61444.05}</div>
+      </div>
+      <div class="node" id="n-acc" style="left:1120px;top:230px;width:430px">
+        <div class="k">specialist · A2A</div>
+        <div class="t">account</div>
+        <div class="d">real brokerage account · READ-ONLY by construction</div>
+        <div class="json" id="j-acc">{"balance":198.76,"currency":"USDT"}</div>
+      </div>
+      <div class="node" id="n-vis" style="left:1120px;top:440px;width:430px">
+        <div class="k">vision</div>
+        <div class="t">screenshot → holdings</div>
+        <div class="d">model READS · code COMPUTES — qty × live quote in Python</div>
+        <div class="json" id="j-vis">{"total_live_value":16715.94}</div>
+      </div>
+      <div class="node gate" id="n-gate" style="left:600px;top:580px;width:470px">
+        <div class="k">before anything ships</div>
+        <div class="t">ANSWER AUDITOR</div>
+        <div class="d">deterministic — <b>no model in the loop</b><br>
+          every money number must match a tool-returned value (±3%)</div>
+      </div>
+      <div class="tripchips" id="trips" style="left:80px;top:600px">
+        <span>buy now</span><span>매수하세요</span><span>수익 보장</span>
+        <span>withdraw</span><span>송금해</span><span>guaranteed</span>
+      </div>
+      <span class="vstamp" id="st-pass" style="left:600px;top:765px">✓ 검증됨 — ships, stamped</span>
+      <span class="vstamp red" id="st-block" style="left:1080px;top:765px">⨯ 차단됨 — never reaches the user</span>
+    </div>
+  </section>
+
+  <section class="scene clipscene" id="s4">
+    <span class="exhibit-tag">Exhibit 3 · live on cloud run</span>
+    <div class="scenetitle"><b>03</b> · live — markets + account specialists, audit stamp on every card</div>
+    <div class="clipframe"><video id="clip-a" src="/film/assets/clip-a.webm" muted preload="auto"></video></div>
+  </section>
+
+  <section class="scene clipscene" id="s5">
+    <span class="exhibit-tag">Exhibit 4 · vision, live</span>
+    <div class="scenetitle"><b>04</b> · screenshot → model reads · code computes · auditor verifies</div>
+    <div class="clipframe"><video id="clip-b" src="/film/assets/clip-b.webm" muted preload="auto"></video></div>
+  </section>
+
+  <section class="scene clipscene" id="s6">
+    <span class="exhibit-tag">Exhibit 5 · the refusal</span>
+    <div class="scenetitle"><b>05</b> · "사야 돼?" — refusal is structural, not stylistic</div>
+    <div class="clipframe"><video id="clip-c" src="/film/assets/clip-c.webm" muted preload="auto"></video></div>
+  </section>
+
+  <section class="scene termscene" id="s6b">
+    <span class="exhibit-tag">Exhibit 5 · regression test</span>
+    <div class="scenetitle"><b>05</b> · the day-zero incident must be caught on every run</div>
+    <div class="term" id="t-auditor"></div>
+  </section>
+
+  <section class="scene titlecard" id="s7">
+    <div class="doc-rule">
+      <span class="org">NEXUS 머니 코파일럿</span>
+      <span class="no">NEXUS AI LABS · SEOUL</span>
+    </div>
+    <h1 style="font-size:88px">Ask anything about your money.<br>
+      <em>Only verified answers come back.</em></h1>
+    <div class="urls">
+      <div>live demo · <b>money-copilot-675241948019.asia-northeast1.run.app</b></div>
+      <div>code · <b>github.com/gudax/nexus-money-copilot</b></div>
+      <div>verification lineage · <b>Sentinel Mesh</b> (our Track 2 entry) · production line · <b>Apps in Toss, 30M users</b></div>
+      <div class="dim">recorded run · real exchange data · real demo account · no answer edited</div>
+    </div>
+  </section>
+
+<script>
+const $ = s => document.querySelector(s);
+
+function lineClass(raw){
+  return "ln" +
+    (raw.trim().startsWith("$") ? " cmd" :
+     /block|CRASH|fabricated|lying|wrong year/i.test(raw) ? " veto" :
+     /pass|GREEN|truth/i.test(raw) ? " ok" :
+     /^\s*["{\[]|^\s{2}/.test(raw) ? " dim" : "");
+}
+
+function show(id){ document.querySelectorAll(".scene").forEach(s => s.classList.remove("on")); $(id).classList.add("on"); }
+
+// Absolute-deadline scheduler (sentinel lineage): every action carries a
+// wall-clock deadline; a 120 ms tick fires everything due, so a throttled
+// browser self-corrects instead of stretching the timeline.
+async function startFilm(){
+  const [T, A] = await Promise.all([
+    fetch("/film/vo/timings.json").then(r => r.json()),
+    fetch("/film/assets/terminal.json").then(r => r.json()),
+  ]);
+  const len = i => T.durations[i] + T.pad;
+  const S = T.starts;
+  const acts = [];
+  const at = (t, fn) => acts.push({t, fn, done: false});
+  const typeAt = (t0s, termSel, lines, span) => {
+    const term = $(termSel); term.innerHTML = "";
+    lines.forEach((raw, j) => {
+      const d = document.createElement("div");
+      d.className = lineClass(raw); d.textContent = raw || " ";
+      term.appendChild(d);
+      at(t0s + (j * span) / lines.length, () => d.classList.add("show"));
+    });
+  };
+  const playClip = sel => { const v = $(sel); v.currentTime = 0; v.play(); };
+
+  at(0, () => { $("#preroll").classList.add("off"); show("#s1"); });
+  at(.9, () => $("#coverstamp").classList.add("in"));
+
+  at(S[1], () => show("#s2"));  typeAt(S[1] + .4, "#t-incident", A.incident, len(1) * .8);
+
+  // architecture — staged build over the VO
+  at(S[2], () => show("#s3"));
+  const L2 = len(2);
+  const reveal = (frac, ...ids) => at(S[2] + L2 * frac, () => ids.forEach(i => $(i).classList.add(/stamp/.test(i) ? "in" : "show")));
+  reveal(.04, "#n-q");
+  reveal(.13, "#w-q", "#n-orch");
+  reveal(.24, "#tag-a2a", "#w-m", "#n-mkt");
+  reveal(.36, "#w-a", "#n-acc");
+  reveal(.46, "#w-v", "#n-vis");
+  reveal(.58, "#w-g1", "#w-g2", "#n-gate");
+  reveal(.70, "#trips");
+  at(S[2] + L2 * .82, () => { $("#w-s").classList.add("show"); $("#st-pass").classList.add("in"); });
+  at(S[2] + L2 * .90, () => $("#st-block").classList.add("in"));
+
+  at(S[3], () => { show("#s4"); playClip("#clip-a"); });
+  at(S[4], () => { show("#s5"); playClip("#clip-b"); });
+  at(S[5], () => { show("#s6"); playClip("#clip-c"); });
+  at(S[5] + len(5) * .58, () => show("#s6b"));
+  typeAt(S[5] + len(5) * .58 + .3, "#t-auditor", A.auditor, len(5) * .36);
+  at(S[6], () => show("#s7"));
+  at(T.total + 1.2, () => { document.title = "FILM-DONE"; });
+
+  const t0 = performance.now();
+  const tick = setInterval(() => {
+    const el = (performance.now() - t0) / 1000;
+    for (const a of acts) if (!a.done && a.t <= el) { a.done = true; a.fn(); }
+    if (acts.every(a => a.done)) clearInterval(tick);
+  }, 120);
+}
+
+if (new URLSearchParams(location.search).get("go")) {
+  document.fonts.ready.then(() => setTimeout(startFilm, 600));
+}
+</script>
+</body>
+</html>
