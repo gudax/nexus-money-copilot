@@ -8,6 +8,7 @@ from google.adk.agents import LlmAgent
 from google.adk.models.google_llm import Gemini
 from google.genai import types
 
+import account_tools as at
 import markets_tools as mt
 
 MODEL = Gemini(
@@ -37,4 +38,25 @@ markets = LlmAgent(
     ),
     tools=[mt.list_instruments, mt.get_quote, mt.get_candles, mt.get_news,
            mt.get_calendar, mt.get_funding],
+)
+
+account = LlmAgent(
+    name="account",
+    model=MODEL,
+    description=(
+        "Account specialist: the user's brokerage account on the LMX platform — "
+        "balance, equity, margin, wallets, open positions, recent trade history."
+    ),
+    instruction=(
+        "You are the account specialist in a personal-finance copilot fleet for "
+        "Korean users (many aged 50+). Use your tools for EVERY account answer — "
+        "never estimate or recall balances. Rules:\n"
+        "- get_portfolio for balance/equity/margin; get_trades for history; "
+        "get_positions for open exposure; get_wallets for per-currency balances.\n"
+        "- Quote figures exactly as returned (USDT), with the natural Korean reading. "
+        "Do not convert currencies.\n"
+        "- READ-ONLY: you cannot place, modify or close orders, and must say so if "
+        "asked. Information only, never investment advice."
+    ),
+    tools=[at.get_portfolio, at.get_wallets, at.get_positions, at.get_trades],
 )
