@@ -18,6 +18,8 @@ reaches the user.
 
 ## Architecture
 
+![Architecture](assets/architecture.svg)
+
 ```
  web demo / Toss miniapp (30M-user platform, production)
         │
@@ -38,8 +40,10 @@ reaches the user.
   brokerage account through a GET-only hard allowlist; **no order, withdrawal
   or transfer surface exists in the code**.
 - **Audited answers**: `fleet/auditor.py` — money-scale numbers in the final
-  answer must match a tool-returned value within 3%; buy/sell recommendations
-  and money-movement phrasing are hard-blocked. The audit verdict ships with
+  answer must match a value the exchange API *actually returned this request*
+  (raw JSON captured at the worker tool seam via `fleet/truth_log.py`, within
+  3%); buy/sell recommendations — imperative **and** soft advisory phrasing —
+  and money-movement language are hard-blocked. The audit verdict ships with
   every API response and is rendered as a stamp on every answer card.
 - **Vision, but never model arithmetic**: upload any brokerage screenshot and
   `fleet/vision_tools.py` splits the work — Gemini vision is trusted only to
@@ -77,9 +81,13 @@ uvicorn service.app:app --port 8110                  # then open http://localhos
   failure class can never ship regardless.
 - The LMX candles API returns **newest-first string numbers**; the tool layer
   normalizes to chronological floats before any model sees them.
-- The demo account is a staging account on infrastructure shared with
-  production — which is exactly why both tool modules are GET-only hard
-  allowlists, asserted at call time.
+- The demo account is a real account on a live exchange — which is exactly
+  why both tool modules are GET-only hard allowlists, asserted at call time.
+- **The audit's truth set is the raw exchange JSON, not model prose**: every
+  worker tool seam logs its raw HTTP response (`fleet/truth_log.py`), and the
+  auditor matches the final answer against those numbers — a worker
+  hallucination can't vouch for itself, because the model never sits between
+  the API and the audit.
 - Verification lineage: the auditor's tripwire and fail-closed philosophy are
   vendored from [Sentinel Mesh](https://github.com/gudax/sentinel-mesh), our
   verified-memory control plane (separate submission, Track 2).

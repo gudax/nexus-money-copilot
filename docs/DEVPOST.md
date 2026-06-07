@@ -26,8 +26,8 @@ Every response carries a visible audit stamp: ✓ 검증됨 (verified) or ⨯ �
 - **account specialist** (A2A): reads a real demo brokerage account — balance, equity, positions, trade history. READ-ONLY by construction: a GET-only hard allowlist; no order/withdraw/transfer surface exists in the code.
 - **orchestrator** (ADK `Agent` + `RemoteA2aAgent` ×2): routes Korean questions to specialists, fails closed when a worker errors.
 - **Answer Auditor** — the deterministic seam, no model in the loop:
-  1. every money-scale number in the final answer must match something a tool *actually returned this session* (±3%), or the answer is blocked;
-  2. buy/sell recommendations and money-movement language (EN+KR tripwire) are blocked regardless of what any model thinks.
+  1. every money-scale number in the final answer must match the **raw exchange JSON** captured at the worker tool seam *this request* (±3%), or the answer is blocked — model prose is never the truth set, so a worker hallucination can't vouch for itself;
+  2. buy/sell recommendations — imperative and soft advisory phrasing alike — and money-movement language (EN+KR tripwire) are blocked regardless of what any model thinks.
 - **Vision pipeline** — the model reads, the code computes: Gemini vision extracts structured holdings from a portfolio screenshot (schema forbids invented numbers), then plain Python prices them against live LMX quotes — qty × price never happens inside a model. Both outputs join the session's tool outputs, so the auditor holds the narration to exactly those numbers.
 
 ## Challenges we ran into
@@ -48,10 +48,11 @@ Trust in agent systems is a *seam* problem. Models are excellent readers and nar
 
 ## What's next
 
-This fleet is the audited brain for our production consumer line: Nexus AI Labs already operates a Gemini-powered agent for real users on **Apps in Toss — Korea's super-app platform with 30M users** — and LMX runs ADK agents in production trading operations today. The verification layer is shared lineage with Sentinel Mesh, our Track 2 entry: the control plane and the consumer fleet that proves it.
+This fleet is the audited brain for our production consumer line: Nexus AI Labs already operates a Gemini-powered agent for real users on **Apps in Toss — Korea's super-app platform with 30M users**. The verification layer is shared lineage with Sentinel Mesh, our Track 2 entry: the control plane and the consumer fleet that proves it.
 
 ## Try it
 
+- Demo video: https://youtu.be/zb2_QeROu54
 - Live demo (Cloud Run): https://money-copilot-675241948019.asia-northeast1.run.app
 - Repo: https://github.com/gudax/nexus-money-copilot
 - Suggested probes: "비트코인 지금 얼마야?" · "내 계좌 잔고 알려줘" · the 📷 sample-portfolio chip · and try to make it give investment advice.

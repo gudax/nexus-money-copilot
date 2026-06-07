@@ -3,11 +3,13 @@
 
 Every tool is a GET against api.lmx.mx's public, credential-free market surface
 (82 instruments: crypto via Binance USD-M, FX/metals/energy/indices/US stocks via
-institutional feed). HARD ALLOWLIST: only the endpoints below, only GET — the
-staging environment shares infrastructure with production, so this module is the
-single place network access is defined. No auth header exists in this file.
+institutional feed). HARD ALLOWLIST: only the endpoints below, only GET — this is
+a live exchange API, so this module is the single place network access is
+defined. No auth header exists in this file.
 """
 import httpx
+
+import truth_log
 
 BASE = "https://api.lmx.mx"
 _TIMEOUT = httpx.Timeout(8.0)
@@ -21,7 +23,9 @@ def _get(path: str, params: dict | None = None):
     assert path.startswith(_ALLOW), f"endpoint not in allowlist: {path}"
     r = _client.get(path, params=params or {})
     r.raise_for_status()
-    return r.json()
+    data = r.json()
+    truth_log.record(f"markets:{path}", data)  # raw exchange JSON -> auditor truth
+    return data
 
 
 def _candles(symbol: str, tf: str) -> list:

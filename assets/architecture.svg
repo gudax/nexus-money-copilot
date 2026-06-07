@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="640" viewBox="0 0 1080 640" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8b949e"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e5534b"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3fb950"/>
+    </marker>
+  </defs>
+
+  <rect width="1080" height="640" fill="#0d1117"/>
+  <text x="40" y="46" fill="#e6edf3" font-size="22" font-weight="700">NEXUS Money Copilot — audited ADK/A2A fleet, one Cloud Run container</text>
+  <text x="40" y="70" fill="#8b949e" font-size="13">Track 1 · Google for Startups AI Agents Challenge 2026 · Gemini on Vertex AI</text>
+
+  <!-- user / clients -->
+  <rect x="40" y="100" width="220" height="64" rx="8" fill="#161b22" stroke="#30363d"/>
+  <text x="150" y="127" fill="#e6edf3" font-size="14" font-weight="600" text-anchor="middle">User (Korea 50+)</text>
+  <text x="150" y="148" fill="#8b949e" font-size="12" text-anchor="middle">web demo · Toss miniapp line</text>
+
+  <!-- Cloud Run container boundary -->
+  <rect x="40" y="196" width="1000" height="318" rx="10" fill="none" stroke="#388bfd" stroke-dasharray="6 5"/>
+  <text x="58" y="220" fill="#388bfd" font-size="12" font-weight="600">Cloud Run — single container (launcher.sh boots 3 processes)</text>
+
+  <!-- service -->
+  <rect x="70" y="240" width="280" height="100" rx="8" fill="#161b22" stroke="#30363d"/>
+  <text x="210" y="266" fill="#e6edf3" font-size="14" font-weight="600" text-anchor="middle">copilot service (FastAPI)</text>
+  <text x="210" y="287" fill="#8b949e" font-size="12" text-anchor="middle">orchestrator · ADK Agent</text>
+  <text x="210" y="306" fill="#8b949e" font-size="12" text-anchor="middle">RemoteA2aAgent ×2 as AgentTool</text>
+  <text x="210" y="325" fill="#8b949e" font-size="12" text-anchor="middle">Gemini (Vertex AI)</text>
+
+  <!-- workers -->
+  <rect x="430" y="240" width="260" height="64" rx="8" fill="#161b22" stroke="#30363d"/>
+  <text x="560" y="265" fill="#e6edf3" font-size="14" font-weight="600" text-anchor="middle">markets worker · :8101</text>
+  <text x="560" y="287" fill="#8b949e" font-size="12" text-anchor="middle">LlmAgent via to_a2a() · AgentCard</text>
+
+  <rect x="430" y="324" width="260" height="64" rx="8" fill="#161b22" stroke="#30363d"/>
+  <text x="560" y="349" fill="#e6edf3" font-size="14" font-weight="600" text-anchor="middle">account worker · :8102</text>
+  <text x="560" y="371" fill="#8b949e" font-size="12" text-anchor="middle">READ-ONLY · GET-only allowlist</text>
+
+  <!-- LMX -->
+  <rect x="790" y="240" width="220" height="148" rx="8" fill="#161b22" stroke="#30363d"/>
+  <text x="900" y="266" fill="#e6edf3" font-size="14" font-weight="600" text-anchor="middle">LMX exchange API</text>
+  <text x="900" y="288" fill="#8b949e" font-size="12" text-anchor="middle">82 live instruments</text>
+  <text x="900" y="307" fill="#8b949e" font-size="12" text-anchor="middle">candles · news · calendar</text>
+  <text x="900" y="326" fill="#8b949e" font-size="12" text-anchor="middle">demo brokerage account</text>
+  <text x="900" y="350" fill="#3fb950" font-size="12" text-anchor="middle">raw JSON → truth_log</text>
+  <text x="900" y="369" fill="#8b949e" font-size="11" text-anchor="middle">(captured at the tool seam)</text>
+
+  <!-- vision -->
+  <rect x="70" y="380" width="280" height="80" rx="8" fill="#161b22" stroke="#30363d"/>
+  <text x="210" y="406" fill="#e6edf3" font-size="14" font-weight="600" text-anchor="middle">vision pipeline</text>
+  <text x="210" y="426" fill="#8b949e" font-size="12" text-anchor="middle">Gemini reads the screenshot</text>
+  <text x="210" y="445" fill="#8b949e" font-size="12" text-anchor="middle">code does the arithmetic</text>
+
+  <!-- auditor -->
+  <rect x="430" y="420" width="580" height="74" rx="8" fill="#1a1313" stroke="#e5534b"/>
+  <text x="720" y="447" fill="#ff7b72" font-size="15" font-weight="700" text-anchor="middle">Answer Auditor — deterministic, no model in the loop</text>
+  <text x="720" y="470" fill="#e6edf3" font-size="12" text-anchor="middle">numbers must match raw exchange JSON ±3% · EN+KR advice tripwire (imperative + soft)</text>
+  <text x="720" y="487" fill="#8b949e" font-size="11" text-anchor="middle">verdict ships on every answer card: ✓ 검증됨 / ⨯ 차단됨 · fail closed</text>
+
+  <!-- edges -->
+  <line x1="150" y1="164" x2="150" y2="240" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="160" y="190" fill="#8b949e" font-size="11">POST /v1/ask</text>
+
+  <line x1="350" y1="272" x2="430" y2="272" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="368" y="263" fill="#8b949e" font-size="11">A2A</text>
+  <line x1="350" y1="320" x2="430" y2="352" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="368" y="346" fill="#8b949e" font-size="11">A2A</text>
+
+  <line x1="690" y1="272" x2="790" y2="290" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="690" y1="356" x2="790" y2="336" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="706" y="320" fill="#8b949e" font-size="11">GET (allowlist)</text>
+
+  <line x1="900" y1="388" x2="900" y2="457" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrG)"/>
+  <text x="908" y="410" fill="#3fb950" font-size="11">raw truth</text>
+
+  <line x1="210" y1="340" x2="210" y2="380" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="350" y1="440" x2="430" y2="450" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrG)"/>
+  <text x="356" y="432" fill="#3fb950" font-size="11">pre-verified numbers</text>
+
+  <line x1="430" y1="466" x2="240" y2="466" stroke="#e5534b" stroke-width="1.5"/>
+  <line x1="240" y1="466" x2="222" y2="348" stroke="#e5534b" stroke-width="1.5" marker-end="url(#arrR)"/>
+  <text x="252" y="482" fill="#ff7b72" font-size="11">final answer audited before it ships</text>
+
+  <!-- footer -->
+  <text x="40" y="556" fill="#8b949e" font-size="12">Stack: google-adk[a2a] 2.1.0 · LlmAgent · to_a2a() · RemoteA2aAgent · AgentTool · InMemoryRunner · gemini-flash on Vertex AI</text>
+  <text x="40" y="578" fill="#8b949e" font-size="12">Guarantee: a blocked answer never reaches the user — honesty is enforced by code, not by prompts.</text>
+  <text x="40" y="612" fill="#484f58" font-size="11">github.com/gudax/nexus-money-copilot · money-copilot-675241948019.asia-northeast1.run.app · Nexus AI Labs, Seoul</text>
+</svg>

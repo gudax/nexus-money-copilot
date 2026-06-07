@@ -2,14 +2,16 @@
 """Account agent tool belt — LMX demo account, READ-ONLY.
 
 Auth: one POST /api/auth/login (demo credentials from env, never in code), then
-GET-only against a hard allowlist. The staging environment shares infrastructure
-with production — there is deliberately no order/withdrawal/transfer surface in
-this module, and no code path can construct one.
+GET-only against a hard allowlist. This talks to a live exchange — there is
+deliberately no order/withdrawal/transfer surface in this module, and no code
+path can construct one.
 """
 import os
 import time
 
 import httpx
+
+import truth_log
 
 BASE = "https://api.lmx.mx"
 _client = httpx.Client(base_url=BASE, timeout=httpx.Timeout(8.0))
@@ -35,7 +37,9 @@ def _get(path: str, params: dict | None = None):
     assert path.startswith(_ALLOW), f"endpoint not in allowlist: {path}"
     r = _client.get(path, params=params or {}, headers={"Authorization": f"Bearer {_token()}"})
     r.raise_for_status()
-    return r.json()
+    data = r.json()
+    truth_log.record(f"account:{path}", data)  # raw account JSON -> auditor truth
+    return data
 
 
 def get_portfolio() -> dict:

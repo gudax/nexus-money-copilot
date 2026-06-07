@@ -30,6 +30,7 @@ from google.adk.runners import InMemoryRunner
 from google.genai import types
 
 import auditor
+import truth_log
 import vision_tools
 from orchestrator import orchestrator
 
@@ -57,6 +58,7 @@ def health():
 @app.post("/v1/ask")
 async def ask(body: AskIn):
     t0 = time.perf_counter()
+    truth_pos = truth_log.position()  # this request's raw-tool window starts here
     session = await _runner.session_service.create_session(
         app_name=_runner.app_name, user_id=body.user_id)
     texts, tool_outputs, specialists = [], [], set()
@@ -97,12 +99,15 @@ async def ask(body: AskIn):
             fr = getattr(p, "function_response", None)
             if fr is not None:
                 specialists.add(fr.name)
-                try:
-                    tool_outputs.append(fr.response if isinstance(fr.response, (dict, list))
-                                        else json.loads(str(fr.response)))
-                except (TypeError, ValueError):
-                    tool_outputs.append({"raw": str(fr.response)[:2000]})
     answer = "\n".join(t for t in texts if t).strip()
+
+    # AUDIT TRUTH = raw exchange/account JSON captured at the worker tool seam
+    # (truth_log) + the vision pipeline's pre-verified numbers. The A2A
+    # function_response is worker PROSE — deliberately NOT in the truth set,
+    # so a worker hallucination cannot vouch for itself. If a worker crashed
+    # or fabricated without touching a tool, the window is empty and any
+    # money-scale number in the answer fails the audit (fail closed).
+    tool_outputs += truth_log.read_since(truth_pos)
 
     # split chart payload out of the prose
     chart = None
@@ -116,7 +121,7 @@ async def ask(body: AskIn):
 
     verdict = auditor.audit(answer, tool_outputs)
     if verdict["verdict"] == "block":
-        answer, chart = auditor.BLOCK_MESSAGE, None
+        answer, chart = auditor.block_message(verdict), None
 
     return {
         "answer": answer,
