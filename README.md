@@ -1,8 +1,8 @@
 # NEXUS Money Copilot
 
-**An audited, voice-ready personal-finance copilot for Korea's 50+ generation —
-ADK multi-agent fleet over real A2A, grounded in a live exchange, with every
-answer verified before it ships.**
+**An audited personal-finance copilot for Korea's 50+ generation — ADK
+multi-agent fleet over real A2A, grounded in a live exchange, with every answer
+(text or screenshot) verified before it ships.**
 
 > 물어보면, 검증된 답만 돌아옵니다. — Ask anything about your money; only
 > verified answers come back.
@@ -26,7 +26,8 @@ reaches the user.
         │ orchestrator (ADK Agent, Gemini on Vertex AI)
         ├── A2A ──▶ markets  (LMX exchange live public API — 82 instruments,
         │                     candles, news+sentiment, economic calendar)
-        └── A2A ──▶ account  (brokerage account, READ-ONLY by construction)
+        ├── A2A ──▶ account  (brokerage account, READ-ONLY by construction)
+        └── vision (screenshot → structured holdings → priced BY CODE)
 ```
 
 - **Real A2A**: workers served via `to_a2a()` with live AgentCards; the
@@ -40,6 +41,11 @@ reaches the user.
   answer must match a tool-returned value within 3%; buy/sell recommendations
   and money-movement phrasing are hard-blocked. The audit verdict ships with
   every API response and is rendered as a stamp on every answer card.
+- **Vision, but never model arithmetic**: upload any brokerage screenshot and
+  `fleet/vision_tools.py` splits the work — Gemini vision is trusted only to
+  *read* (structured extraction, no invented numbers), then plain Python prices
+  the holdings against live LMX quotes. Both outputs join the session's tool
+  outputs, so the auditor holds the final narration to exactly those numbers.
 
 ## Quickstart
 

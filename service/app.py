@@ -51,7 +51,7 @@ VISION_FAIL = ("죄송해요 — 스크린샷을 읽지 못했어요. 보유 내
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "fleet": ["markets", "account"], "audited": True}
+    return {"ok": True, "fleet": ["markets", "account", "vision"], "audited": True}
 
 
 @app.post("/v1/ask")
