@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!-- Mock brokerage-app portfolio used to render service/static/sample-portfolio.png.
+     Generic look on purpose (no real brand). Reported values are intentionally a
+     couple of days stale so the live valuation shows honest drift. -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Apple SD Gothic Neo","Pretendard",sans-serif}
+  body{width:390px;background:#f2f4f6;color:#191f28}
+  .top{background:#fff;padding:54px 20px 18px}
+  .top .t{font-size:15px;color:#8b95a1}
+  .top .v{font-size:32px;font-weight:800;margin-top:6px}
+  .top .d{font-size:13px;color:#4e9e62;margin-top:6px}
+  .top .asof{font-size:12px;color:#b0b8c1;margin-top:8px}
+  .sec{margin:12px 16px;background:#fff;border-radius:16px;padding:6px 18px}
+  .sec h2{font-size:14px;color:#8b95a1;font-weight:600;padding:14px 0 6px}
+  .row{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid #f2f4f6}
+  .row:last-child{border-bottom:0}
+  .ic{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:17px;font-weight:800;color:#fff;margin-right:12px}
+  .nm{flex:1}
+  .nm .n{font-size:16px;font-weight:700}
+  .nm .q{font-size:13px;color:#8b95a1;margin-top:2px}
+  .val{text-align:right}
+  .val .v{font-size:16px;font-weight:700}
+  .val .c{font-size:12.5px;margin-top:2px}
+  .up{color:#f04452}.dn{color:#3182f6}
+  .foot{text-align:center;font-size:11px;color:#b0b8c1;padding:14px 0 26px}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="t">내 투자 평가금액</div>
+    <div class="v">$16,746.10</div>
+    <div class="d">+ $214.32 (1.3%)</div>
+    <div class="asof">2026-06-05 16:00 기준 · USD</div>
+  </div>
+
+  <div class="sec">
+    <h2>보유 자산 4</h2>
+    <div class="row">
+      <div class="ic" style="background:#f7931a">₿</div>
+      <div class="nm"><div class="n">비트코인</div><div class="q">0.05 BTC</div></div>
+      <div class="val"><div class="v">$3,095.50</div><div class="c up">+2.1%</div></div>
+    </div>
+    <div class="row">
+      <div class="ic" style="background:#627eea">Ξ</div>
+      <div class="nm"><div class="n">이더리움</div><div class="q">1.2 ETH</div></div>
+      <div class="val"><div class="v">$1,930.20</div><div class="c dn">-0.8%</div></div>
+    </div>
+    <div class="row">
+      <div class="ic" style="background:#caa53d">Au</div>
+      <div class="nm"><div class="n">금 (스팟)</div><div class="q">2.0 oz</div></div>
+      <div class="val"><div class="v">$8,649.10</div><div class="c up">+0.6%</div></div>
+    </div>
+    <div class="row">
+      <div class="ic" style="background:#555">A</div>
+      <div class="nm"><div class="n">애플</div><div class="q">10 주</div></div>
+      <div class="val"><div class="v">$3,071.30</div><div class="c up">+1.4%</div></div>
+    </div>
+  </div>
+
+  <div class="foot">모의 화면 · 데모용 샘플 데이터</div>
+</body>
+</html>

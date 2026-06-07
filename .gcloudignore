@@ -2,4 +2,5 @@
 .venv
 .env.demo
 *.png
+!service/static/*.png
 __pycache__/
