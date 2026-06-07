@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS Money Copilot — 검증되는 돈 비서</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='14' width='80' height='72' rx='8' fill='%23fdfaf3' stroke='%231b4332' stroke-width='6'/><path d='M30 52l14 14 26-26' stroke='%231b4332' stroke-width='9' fill='none'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#fdfaf3; --paper-2:#f5efe0; --line:#e3dac4; --line-strong:#c9bd9d;
+    --ink:#24251f; --soft:#6e6a5c; --faint:#a39d8a;
+    --green:#1b4332; --green-soft:#2d6a4f; --red:#b3261e; --gold:#9a6200;
+    --serif:"Gowun Batang",serif; --sans:"IBM Plex Sans KR",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{background:var(--paper-2)}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);
+    font-size:17px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px 140px}
+
+  header{padding:30px 0 18px;border-bottom:3px solid var(--green)}
+  .brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .brand .mark{font-family:var(--serif);font-weight:700;font-size:26px;color:var(--green)}
+  .brand .tag{font-size:13px;color:var(--soft)}
+  .brand .live{margin-left:auto;font-size:12px;color:var(--green-soft);font-weight:500}
+  .brand .live::before{content:"●";font-size:9px;margin-right:5px;vertical-align:2px}
+  h1{font-family:var(--serif);font-weight:700;font-size:clamp(26px,5vw,34px);line-height:1.35;margin-top:22px}
+  h1 em{font-style:normal;color:var(--green)}
+  .sub{color:var(--soft);font-size:15px;margin-top:8px;max-width:56ch}
+  .sub b{color:var(--ink);font-weight:500}
+
+  .chips{display:flex;gap:9px;flex-wrap:wrap;margin:22px 0 6px}
+  .chip{font-size:14.5px;border:1.5px solid var(--line-strong);background:var(--paper-2);
+    border-radius:999px;padding:9px 16px;cursor:pointer;color:var(--ink);transition:all .15s}
+  .chip:hover{border-color:var(--green);color:var(--green)}
+
+  .feed{margin-top:10px}
+  .turn{padding:20px 0;border-bottom:1px dashed var(--line)}
+  .q{font-family:var(--serif);font-size:19px;font-weight:700;color:var(--green)}
+  .q::before{content:"문 ";font-size:12px;color:var(--faint);letter-spacing:.2em;font-family:var(--sans);font-weight:400}
+  .a{margin-top:12px;white-space:pre-wrap}
+  .a b,.a strong{font-weight:700}
+  .thinking{color:var(--faint);margin-top:12px}
+  .thinking::after{content:"…";animation:dots 1.2s infinite}
+  @keyframes dots{0%{content:"."}33%{content:".."}66%{content:"..."}}
+
+  .badge-row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .vbadge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+    color:var(--green);border:2px solid var(--green);border-radius:4px;padding:4px 11px;
+    transform:rotate(-1.4deg);box-shadow:inset 0 0 0 1.5px var(--paper),inset 0 0 0 2.5px var(--green)}
+  .vbadge.blocked{color:var(--red);border-color:var(--red);
+    box-shadow:inset 0 0 0 1.5px var(--paper),inset 0 0 0 2.5px var(--red)}
+  .meta{font-size:12px;color:var(--faint)}
+
+  .chart{margin-top:14px;border:1.5px solid var(--line-strong);background:var(--paper-2);
+    border-radius:6px;padding:12px 14px 6px}
+  .chart .cap{font-size:12px;color:var(--soft);margin-bottom:4px}
+  .chart svg{width:100%;height:150px;display:block}
+
+  .bar{position:fixed;left:0;right:0;bottom:0;background:var(--paper);
+    border-top:2.5px solid var(--green);padding:14px 20px calc(14px + env(safe-area-inset-bottom))}
+  .bar-inner{max-width:760px;margin:0 auto;display:flex;gap:10px}
+  input{flex:1;font-family:var(--sans);font-size:17px;padding:14px 16px;border:1.5px solid var(--line-strong);
+    border-radius:10px;background:var(--paper-2);color:var(--ink);outline:none}
+  input:focus{border-color:var(--green)}
+  button{font-family:var(--sans);font-size:16px;font-weight:700;color:#fff;background:var(--green);
+    border:none;border-radius:10px;padding:0 24px;cursor:pointer}
+  button:disabled{opacity:.5}
+
+  footer{margin-top:34px;font-size:12px;line-height:1.7;color:var(--faint)}
+  footer b{color:var(--soft);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span class="mark">NEXUS 머니 코파일럿</span>
+      <span class="tag">Google AI Agents Challenge · Track 1</span>
+      <span class="live">LIVE — LMX 거래소 실데이터</span>
+    </div>
+    <h1>물어보면, <em>검증된 답</em>만 돌아옵니다.</h1>
+    <p class="sub">ADK 멀티에이전트(<b>markets · account</b>)가 A2A로 협업하고, 모든 답변의 수치는
+      전송 전에 <b>실시간 피드와 대조 감사</b>됩니다. 숫자를 지어내는 답은 차단됩니다 — 진짜로요.</p>
+  </header>
+
+  <div class="chips" id="chips">
+    <span class="chip">비트코인 지금 얼마야?</span>
+    <span class="chip">금 시세랑 최근 흐름 차트로 보여줘</span>
+    <span class="chip">내 계좌 잔고 알려줘</span>
+    <span class="chip">최근 거래 내역 보여줘</span>
+    <span class="chip">이번 주 중요한 경제 일정 있어?</span>
+  </div>
+
+  <main class="feed" id="feed"></main>
+
+  <footer>
+    <div><b>안전 설계:</b> 읽기 전용 데모 계좌 · 매수/매도 권유 발화 차단(트립와이어) · 수치 감사 후 전송 ·
+      마켓 데이터는 LMX 거래소 공개 API (82종목, 크립토+FX+금+지수+미국주식)</div>
+    <div style="margin-top:6px">Nexus AI Labs · Seoul — 같은 에이전트가 Apps in Toss(3,000만 사용자 플랫폼)에서
+      프로덕션 서비스 중 · 검증 레이어는 <b>Sentinel Mesh</b> 계열</div>
+  </footer>
+</div>
+
+<div class="bar"><div class="bar-inner">
+  <input id="q" maxlength="500" placeholder="돈에 관해 무엇이든 물어보세요 — 예: 비트코인 얼마야?">
+  <button id="go">묻기</button>
+</div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const feed = $("feed");
+
+function chartSVG(data){
+  if (!data || data.length < 2) return "";
+  const ys = data.map(d => d.y ?? d.c), xs = data.map((_, i) => i);
+  const mn = Math.min(...ys), mx = Math.max(...ys), pad = (mx - mn) * 0.1 || 1;
+  const W = 700, H = 150;
+  const px = i => (i / (xs.length - 1)) * (W - 16) + 8;
+  const py = v => H - 14 - ((v - (mn - pad)) / ((mx + pad) - (mn - pad))) * (H - 28);
+  const pts = ys.map((v, i) => `${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <polyline points="${pts}" fill="none" stroke="#1b4332" stroke-width="2.2"/>
+    <text x="8" y="12" font-size="11" fill="#6e6a5c">${mx.toLocaleString()}</text>
+    <text x="8" y="${H-2}" font-size="11" fill="#6e6a5c">${mn.toLocaleString()}</text>
+  </svg>`;
+}
+
+async function ask(question){
+  const turn = document.createElement("section");
+  turn.className = "turn";
+  turn.innerHTML = `<div class="q">${question}</div><div class="thinking">에이전트들이 상의 중</div>`;
+  feed.prepend(turn);
+  $("go").disabled = true;
+  try {
+    const r = await fetch("/v1/ask", {method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({question})});
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail?.[0]?.msg || r.status);
+    const a = d.audit || {};
+    const ok = a.verdict === "pass";
+    turn.querySelector(".thinking").remove();
+    const safe = d.answer.replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/^\* /gm, "· ");
+    turn.insertAdjacentHTML("beforeend", `
+      <div class="a">${safe}</div>
+      ${d.chart_data ? `<div class="chart"><div class="cap">최근 흐름</div>${chartSVG(d.chart_data)}</div>` : ""}
+      <div class="badge-row">
+        <span class="vbadge ${ok ? "" : "blocked"}">${ok ? "✓ 검증됨" : "⨯ 차단됨"} · 실시간 데이터 대조</span>
+        <span class="meta">수치 ${a.numbers_checked ?? 0}건 감사 · ${(a.specialists||[]).join("+") || "—"} 에이전트 · ${((a.elapsed_ms||0)/1000).toFixed(1)}초</span>
+      </div>`);
+  } catch(e) {
+    turn.querySelector(".thinking")?.remove();
+    turn.insertAdjacentHTML("beforeend", `<div class="a" style="color:var(--red)">⨯ ${e.message}</div>`);
+  } finally {
+    $("go").disabled = false;
+  }
+}
+
+$("go").addEventListener("click", () => { const v = $("q").value.trim(); if (v) { ask(v); $("q").value = ""; }});
+$("q").addEventListener("keydown", e => { if (e.key === "Enter") $("go").click(); });
+document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => ask(c.textContent)));
+</script>
+</body>
+</html>
