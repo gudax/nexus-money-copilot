@@ -2,65 +2,80 @@
 <!-- Mock brokerage-app portfolio used to render service/static/sample-portfolio.png.
      Generic look on purpose (no real brand). Reported values are intentionally a
      couple of days stale so the live valuation shows honest drift. -->
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;font-family:"Apple SD Gothic Neo","Pretendard",sans-serif}
-  body{width:390px;background:#f2f4f6;color:#191f28}
-  .top{background:#fff;padding:54px 20px 18px}
-  .top .t{font-size:15px;color:#8b95a1}
-  .top .v{font-size:32px;font-weight:800;margin-top:6px}
-  .top .d{font-size:13px;color:#4e9e62;margin-top:6px}
-  .top .asof{font-size:12px;color:#b0b8c1;margin-top:8px}
-  .sec{margin:12px 16px;background:#fff;border-radius:16px;padding:6px 18px}
-  .sec h2{font-size:14px;color:#8b95a1;font-weight:600;padding:14px 0 6px}
-  .row{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid #f2f4f6}
+  :root{
+    --bg:#faf9f7; --surface:#ffffff; --surface-sunken:#f3f1ec;
+    --border:#e8e4dc; --border-strong:#d6d0c4;
+    --ink:#1c1b18; --ink-2:#565049; --ink-3:#8f897e;
+    --accent:#cc5a36;
+    --up:#117a4d; --dn:#c43d2e;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:var(--sans)}
+  body{width:390px;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .top{background:var(--surface);padding:54px 22px 22px;border-bottom:1px solid var(--border)}
+  .top .brand{display:flex;align-items:baseline;gap:8px;margin-bottom:22px}
+  .top .brand .mark{font-weight:800;letter-spacing:-.03em;font-size:15px;color:var(--ink)}
+  .top .brand .prod{font-weight:500;color:var(--ink-2);font-size:15px}
+  .top .t{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .top .v{font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums}
+  .top .d{font-family:var(--mono);font-size:13px;color:var(--up);margin-top:8px;font-variant-numeric:tabular-nums}
+  .top .asof{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-3);margin-top:10px}
+  .sec{margin:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:6px 18px}
+  .sec h2{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:500;padding:14px 0 6px}
+  .row{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid var(--border)}
   .row:last-child{border-bottom:0}
   .ic{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
       font-size:17px;font-weight:800;color:#fff;margin-right:12px}
   .nm{flex:1}
-  .nm .n{font-size:16px;font-weight:700}
-  .nm .q{font-size:13px;color:#8b95a1;margin-top:2px}
+  .nm .n{font-size:16px;font-weight:600;color:var(--ink)}
+  .nm .q{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);margin-top:3px;font-variant-numeric:tabular-nums}
   .val{text-align:right}
-  .val .v{font-size:16px;font-weight:700}
-  .val .c{font-size:12.5px;margin-top:2px}
-  .up{color:#f04452}.dn{color:#3182f6}
-  .foot{text-align:center;font-size:11px;color:#b0b8c1;padding:14px 0 26px}
+  .val .v{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+  .val .c{font-family:var(--mono);font-size:12px;margin-top:3px;font-variant-numeric:tabular-nums}
+  .up{color:var(--up)}.dn{color:var(--dn)}
+  .foot{text-align:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
+    color:var(--ink-3);padding:16px 0 28px}
 </style>
 </head>
 <body>
   <div class="top">
-    <div class="t">내 투자 평가금액</div>
+    <div class="brand"><span class="mark">NEXUS</span><span class="prod">Wallet</span></div>
+    <div class="t">My portfolio value</div>
     <div class="v">$16,746.10</div>
     <div class="d">+ $214.32 (1.3%)</div>
-    <div class="asof">2026-06-05 16:00 기준 · USD</div>
+    <div class="asof">As of 2026-06-05 16:00 · USD</div>
   </div>
 
   <div class="sec">
-    <h2>보유 자산 4</h2>
+    <h2>Holdings · 4</h2>
     <div class="row">
       <div class="ic" style="background:#f7931a">₿</div>
-      <div class="nm"><div class="n">비트코인</div><div class="q">0.05 BTC</div></div>
+      <div class="nm"><div class="n">Bitcoin</div><div class="q">0.05 BTC</div></div>
       <div class="val"><div class="v">$3,095.50</div><div class="c up">+2.1%</div></div>
     </div>
     <div class="row">
       <div class="ic" style="background:#627eea">Ξ</div>
-      <div class="nm"><div class="n">이더리움</div><div class="q">1.2 ETH</div></div>
+      <div class="nm"><div class="n">Ethereum</div><div class="q">1.2 ETH</div></div>
       <div class="val"><div class="v">$1,930.20</div><div class="c dn">-0.8%</div></div>
     </div>
     <div class="row">
       <div class="ic" style="background:#caa53d">Au</div>
-      <div class="nm"><div class="n">금 (스팟)</div><div class="q">2.0 oz</div></div>
+      <div class="nm"><div class="n">Gold (spot)</div><div class="q">2.0 oz</div></div>
       <div class="val"><div class="v">$8,649.10</div><div class="c up">+0.6%</div></div>
     </div>
     <div class="row">
       <div class="ic" style="background:#555">A</div>
-      <div class="nm"><div class="n">애플</div><div class="q">10 주</div></div>
+      <div class="nm"><div class="n">Apple</div><div class="q">10 shares</div></div>
       <div class="val"><div class="v">$3,071.30</div><div class="c up">+1.4%</div></div>
     </div>
   </div>
 
-  <div class="foot">모의 화면 · 데모용 샘플 데이터</div>
+  <div class="foot">Mock screen · sample demo data</div>
 </body>
 </html>

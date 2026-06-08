@@ -14,9 +14,9 @@ That incident became the product thesis: **a money copilot is only shippable if 
 
 ## What it does
 
-NEXUS Money Copilot is a Korean-language personal-finance copilot for the 50+ generation. Ask it anything about your money — prices, charts, news, your own balance and trade history, or just upload a screenshot of any brokerage app — and **only verified answers come back.**
+NEXUS Money Copilot is a personal-finance copilot for the 50+ generation — demoed here in English; the production line serves Korean users on Apps in Toss. Ask it anything about your money — prices, charts, news, your own balance and trade history, or just upload a screenshot of any brokerage app — and **only verified answers come back.**
 
-Every response carries a visible audit stamp: ✓ 검증됨 (verified) or ⨯ 차단됨 (blocked). The stamp is not decoration; it is the output of a deterministic gate that every answer must pass before it leaves the server.
+Every response carries a visible audit stamp: ✓ Verified or ✕ Blocked. The stamp is not decoration; it is the output of a deterministic gate that every answer must pass before it leaves the server.
 
 ## How we built it
 
@@ -24,7 +24,7 @@ Every response carries a visible audit stamp: ✓ 검증됨 (verified) or ⨯ �
 
 - **markets specialist** (ADK `LlmAgent`, served via `to_a2a()`): grounded in the LMX exchange's live public market API — 82 real instruments (crypto, FX, gold, indices, US stocks), OHLCV candles, news with sentiment, economic calendar. Production trading infrastructure, not a mock.
 - **account specialist** (A2A): reads a real demo brokerage account — balance, equity, positions, trade history. READ-ONLY by construction: a GET-only hard allowlist; no order/withdraw/transfer surface exists in the code.
-- **orchestrator** (ADK `Agent` + `RemoteA2aAgent` ×2): routes Korean questions to specialists, fails closed when a worker errors.
+- **orchestrator** (ADK `Agent` + `RemoteA2aAgent` ×2): routes questions to specialists, fails closed when a worker errors.
 - **Answer Auditor** — the deterministic seam, no model in the loop:
   1. every money-scale number in the final answer must match the **raw exchange JSON** captured at the worker tool seam *this request* (±3%), or the answer is blocked — model prose is never the truth set, so a worker hallucination can't vouch for itself;
   2. buy/sell recommendations — imperative and soft advisory phrasing alike — and money-movement language (EN+KR tripwire) are blocked regardless of what any model thinks.
@@ -38,7 +38,7 @@ The second challenge was arithmetic: a model that values your portfolio is a mod
 
 ## Accomplishments we're proud of
 
-- Ask "지금 사야 돼?" (should I buy now?) — the copilot refuses, by design; the tripwire makes the refusal structural, not stylistic.
+- Ask "Should I buy now?" — the copilot refuses, by design; the tripwire makes the refusal structural, not stylistic (and it fires in English *and* Korean — a deliberate multilingual defense).
 - The fabrication incident from day 0 is now a regression test the auditor must catch (`python fleet/auditor.py`).
 - A judge can verify everything in one click: the live demo has a sample-screenshot chip — vision reads it, code prices it live, the audit badge shows how many numbers were checked.
 
@@ -52,7 +52,7 @@ This fleet is the audited brain for our production consumer line: Nexus AI Labs 
 
 ## Try it
 
-- Demo video: https://youtu.be/zb2_QeROu54
+- Demo video: https://youtu.be/NEW_ID  ← REPLACE with the new upload's ID
 - Live demo (Cloud Run): https://money-copilot-675241948019.asia-northeast1.run.app
 - Repo: https://github.com/gudax/nexus-money-copilot
-- Suggested probes: "비트코인 지금 얼마야?" · "내 계좌 잔고 알려줘" · the 📷 sample-portfolio chip · and try to make it give investment advice.
+- Suggested probes: "How much is Bitcoin right now?" · "Show me my account balance" · the 📷 sample-portfolio chip · and try to make it give investment advice.

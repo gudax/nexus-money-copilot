@@ -22,17 +22,29 @@ import re
 # buying opportunity", "오를 것 같아요") — recommendation is recommendation
 # whether it arrives as a command or a nudge.
 TRIPWIRE = [
-    # explicit imperatives (EN + KR)
-    r"\b(buy|sell) (now|today|immediately)\b", r"\bguaranteed (return|profit)\b",
-    r"\byou should (buy|sell|invest)\b", r"\bwithdraw\b", r"\btransfer\b",
-    r"매수하세요", r"매도하세요", r"사세요", r"파세요", r"투자하세요",
-    r"수익(을|이)? 보장", r"확실(히|한) (수익|상승|하락)", r"출금해", r"송금해", r"이체해",
-    # soft advisory phrasing (EN + KR). Negated/refusal forms must NOT trip —
-    # "매도를 추천해 드릴 수 없습니다" is the copilot doing its job.
-    r"\b(good|great|perfect) (time|opportunity|moment) to (buy|sell|invest)\b",
-    r"(?<!cannot )(?<!can't )(?<!not )(?<!never )\brecommend (buying|selling|investing)\b",
+    # --- ENGLISH (primary, for English-speaking judges) ---
+    # explicit imperatives / money movement
+    r"\b(buy|sell|get in) (now|today|right now|immediately|while you can)\b",
+    r"\bnow('s| is) (a |the )?(good|great|perfect) time to (buy|sell|get in)\b",
+    r"\b(it )?will (go up|rise|moon|skyrocket|surge|go down|drop|crash)\b",
+    r"\bguaranteed (return|returns|profit|profits|gain|gains)\b",
+    r"\byou should (buy|sell|invest)\b",
+    r"\bwithdraw\b", r"\btransfer (funds|money)\b", r"\bsend money\b",
+    r"\bmove (your |the )?(funds|money)\b", r"\bwire (funds|money|the)\b",
+    r"\btransfer\b",
+    # soft advisory phrasing (EN). Negated/refusal forms must NOT trip —
+    # "I can't recommend buying or selling" is the copilot doing its job.
+    r"\b(good|great|perfect) (time|opportunity|moment) to (buy|sell|invest|get in)\b",
+    r"(?<!cannot )(?<!can't )(?<!not )(?<!never )(?<!won't )\brecommend (buying|selling|investing)\b",
     r"\bI('d| would) (buy|sell)\b",
     r"\bworth (buying|investing)\b",
+    r"\bgreat (buy|investment)\b", r"\bgood (time|moment) to (buy|get in)\b",
+    # --- KOREAN tripwire (retained — multilingual defense, a feature) ---
+    # explicit imperatives (KR)
+    r"매수하세요", r"매도하세요", r"사세요", r"파세요", r"투자하세요",
+    r"수익(을|이)? 보장", r"확실(히|한) (수익|상승|하락)", r"출금해", r"송금해", r"이체해",
+    # soft advisory phrasing (KR). Negated/refusal forms must NOT trip —
+    # "매도를 추천해 드릴 수 없습니다" is the copilot doing its job.
     r"매수\s*기회", r"매도\s*기회",
     r"(매수|매도|투자)[를을]?\s*(추천|권장|고려)(?![^.\n]{0,12}(없|않|금지|어렵))",
     r"사는\s*게\s*좋", r"파는\s*게\s*좋", r"들어가는\s*게\s*좋", r"담아\s*보",
@@ -122,12 +134,12 @@ def audit(answer: str, tool_outputs: list, tolerance: float = 0.03) -> dict:
             "tripwire": [], "unmatched": unmatched, "checked": len(claimed)}
 
 
-BLOCK_MESSAGE = ("죄송해요 — 방금 답변의 수치가 실시간 데이터와 일치하지 않아 "
-                 "전송을 막았어요. 데이터를 다시 확인한 뒤 정확한 값으로 알려드릴게요.")
+BLOCK_MESSAGE = ("I held that answer back — its numbers didn't match the live data. "
+                 "Let me re-check and come back with the verified figures.")
 
-BLOCK_MESSAGE_ADVICE = ("죄송해요 — 매수·매도 판단을 권하는 표현이 감지되어 답변을 "
-                        "차단했어요. 저는 투자 조언 대신 검증된 정보만 드려요. "
-                        "시세·차트·계좌 현황은 얼마든지 물어보세요.")
+BLOCK_MESSAGE_ADVICE = ("I can't share buy/sell recommendations. I give verified "
+                        "information only — ask me for prices, charts, or your "
+                        "account anytime.")
 
 
 def block_message(verdict: dict) -> str:
@@ -137,29 +149,43 @@ def block_message(verdict: dict) -> str:
 
 if __name__ == "__main__":  # checkpoint: the day-0 incident must be caught
     real_tool = [{"symbol": "BTCUSD", "price": 61399.55, "open": 61392.75}]
+    real_btc_en = real_tool  # BTCUSD 61399.55 in the truth set
     cases = [
         # (name, answer, truth, expected_verdict)
+        # --- KOREAN cases (retained — prove multilingual coverage) ---
+        # the authentic day-0 fabrication incident (KRW)
         ("fabricated", "현재 비트코인 가격은 95,845,000 원 입니다.", real_tool, "block"),
         ("honest", "비트코인은 현재 61,399.55 달러입니다.", real_tool, "pass"),
         ("advice", "지금 당장 매수하세요, 수익 보장됩니다.", real_tool, "block"),
         # soft advisory phrasing must trip exactly like an imperative
         ("soft-advice-kr", "지금이 매수 기회로 보입니다.", real_tool, "block"),
         ("soft-advice-kr2", "비트코인은 더 오를 것 같아요.", real_tool, "block"),
-        ("soft-advice-en", "It looks like a great time to buy.", real_tool, "block"),
         # sub-100 currency-marked prices are audited too (the $77 stock case)
         ("sub100-fabricated", "엔비디아는 현재 77.3 달러입니다.", real_tool, "block"),
         ("sub100-honest", "엔비디아는 현재 77.3 달러입니다.",
          real_tool + [{"symbol": "NVDA", "price": 77.3}], "pass"),
         # bare small numbers (counts) stay exempt — no false block
         ("count-exempt", "최근 48개 캔들 기준으로 보여드렸어요.", real_tool, "pass"),
-        # refusal language must NOT trip (the copilot's own refusal phrasing —
-        # both observed live phrasings)
+        # refusal language must NOT trip (the copilot's own refusal phrasing)
         ("refusal-passes", "매수 또는 매도와 같은 투자 조언은 드릴 수 없습니다.", real_tool, "pass"),
         ("refusal-passes2", "저는 매수 또는 매도를 추천해 드릴 수 없습니다.", real_tool, "pass"),
-        ("refusal-passes-en", "I cannot recommend buying or selling.", real_tool, "pass"),
-        # ...but the affirmative forms still trip
+        # ...but the affirmative form still trips
         ("affirm-trips", "이 종목 매수를 추천합니다.", real_tool, "block"),
+
+        # --- ENGLISH mirror cases (primary surface — English judges) ---
+        # fabricated English price must block (no tool returned 73,200)
+        ("fabricated-en", "Bitcoin is currently trading at $73,200.", real_btc_en, "block"),
+        # honest English price (in the truth set) must pass
+        ("honest-en", "Bitcoin is currently $61,399.55.", real_btc_en, "pass"),
+        # English advice must block
+        ("advice-en", "You should buy now — it will go up, guaranteed profit.", real_tool, "block"),
+        ("soft-advice-en", "It looks like a great time to buy.", real_tool, "block"),
         ("affirm-trips-en", "I recommend buying Bitcoin here.", real_tool, "block"),
+        # money-movement language must block
+        ("money-move-en", "You can withdraw and transfer funds to your wallet.", real_tool, "block"),
+        # English refusal must NOT trip
+        ("refusal-passes-en", "I can't recommend buying or selling.", real_tool, "pass"),
+        ("refusal-passes-en2", "I cannot recommend buying or selling — verified info only.", real_tool, "pass"),
     ]
     failures = []
     for name, ans, truth, expected in cases:

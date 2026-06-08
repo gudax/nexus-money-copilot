@@ -1,17 +1,17 @@
 {
  "a": {
-  "raw_s": 23.0,
-  "speed": 1.21,
+  "raw_s": 23.6,
+  "speed": 1.24,
   "final_s": 19.0
  },
  "b": {
-  "raw_s": 22.4,
-  "speed": 1.07,
-  "final_s": 21.0
+  "raw_s": 8.8,
+  "speed": 1.0,
+  "final_s": 8.8
  },
  "c": {
-  "raw_s": 28.4,
-  "speed": 2.58,
+  "raw_s": 37.2,
+  "speed": 3.39,
   "final_s": 11.1
  }
 }

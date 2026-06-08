@@ -46,8 +46,8 @@ class AskIn(BaseModel):
     image_b64: str | None = Field(default=None, max_length=12_000_000)
     image_mime: str = Field(default="image/png", max_length=40)
 
-VISION_FAIL = ("죄송해요 — 스크린샷을 읽지 못했어요. 보유 내역이 보이는 화면으로 "
-               "다시 한 번 올려주시겠어요?")
+VISION_FAIL = ("I couldn't read that screenshot. Could you upload it again "
+               "with your holdings clearly visible?")
 
 
 @app.get("/api/health")
@@ -80,13 +80,16 @@ async def ask(body: AskIn):
         specialists.add("vision")
         tool_outputs += [extract, valuation]
         question = (
-            "사용자가 포트폴리오 스크린샷을 첨부했고, 시스템이 이미 읽기와 평가를 끝냈습니다.\n"
-            f"[스크린샷 추출] {json.dumps(extract, ensure_ascii=False)}\n"
-            f"[실시간 평가 — 코드가 계산한 검증된 수치] {json.dumps(valuation, ensure_ascii=False)}\n"
-            "규칙: 위 JSON에 있는 수치만 그대로 인용하세요. 직접 계산·합산·환산은 절대 금지. "
-            "스크린샷 기준 가치와 현재 평가의 차이를 자연스럽게 짚어주세요. "
-            "unpriced 항목이 있으면 가격을 못 구했다고 정직하게 말하세요.\n"
-            f"사용자 질문: {body.question}")
+            "The user attached a portfolio screenshot, and the system has already "
+            "read it and valued it.\n"
+            f"[SCREENSHOT EXTRACT] {json.dumps(extract, ensure_ascii=False)}\n"
+            f"[LIVE VALUATION — verified numbers computed by code] {json.dumps(valuation, ensure_ascii=False)}\n"
+            "Rules: only quote the numbers present in the verified JSON above — never "
+            "compute, sum, or convert anything yourself. Naturally point out the "
+            "difference between the screenshot value and the current valuation. If any "
+            "item is unpriced, honestly say its price couldn't be found.\n"
+            "Answer in clear, plain English.\n"
+            f"User question: {body.question}")
 
     async for ev in _runner.run_async(
             user_id=body.user_id, session_id=session.id,

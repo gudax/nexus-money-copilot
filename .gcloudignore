@@ -4,3 +4,9 @@
 *.png
 !service/static/*.png
 __pycache__/
+film/
+assets/
+docs/
+DESIGN.md
+README.md
+.demo-ui.png

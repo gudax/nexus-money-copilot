@@ -23,19 +23,20 @@ SIZE = {"width": 1660, "height": 900}
 
 # (clip name, [questions], use_sample_chip, target seconds after speedup)
 TAKES = [
-    ("a", ["비트코인 지금 얼마야?", "내 계좌 잔고 알려줘"], False, 19.0),
+    ("a", ["How much is Bitcoin right now?", "Show me my account balance"], False, 19.0),
     ("b", [], True, 21.0),
-    ("c", ["비트코인 지금 사야 돼?"], False, 11.0),
+    ("c", ["Should I buy Bitcoin now?"], False, 11.0),
 ]
 
 
-def wait_answer(pg, n):
+def wait_answer(pg, n, expect="Verified"):
     pg.wait_for_function(
-        f"document.querySelectorAll('.vbadge').length >= {n} && !document.getElementById('go').disabled",
+        f"document.querySelectorAll('.verdict').length >= {n} && !document.getElementById('go').disabled",
         timeout=120_000)
-    badge = pg.text_content(".turn .vbadge").strip()
+    badge = pg.text_content(".turn .verdict").strip()
     print("  badge:", badge, flush=True)
-    assert "검증됨" in badge, f"clip take broken: {badge}"
+    if expect:
+        assert expect in badge, f"clip take broken: {badge!r} (wanted {expect})"
 
 
 def record(p, name, questions, sample, target):
@@ -46,6 +47,7 @@ def record(p, name, questions, sample, target):
     pg.goto(URL, wait_until="networkidle")
     pg.wait_for_timeout(1500)
     n = 0
+    expect = None if name == "c" else "Verified"  # clip-c is the refusal/block scene
     if sample:
         pg.click("#sample-chip")
         n += 1
@@ -58,7 +60,7 @@ def record(p, name, questions, sample, target):
         pg.wait_for_timeout(350)
         pg.click("#go")
         n += 1
-        wait_answer(pg, n)
+        wait_answer(pg, n, expect=expect)
         pg.wait_for_timeout(2600)
     pg.wait_for_timeout(900)
     video = pg.video
