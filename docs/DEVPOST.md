@@ -52,7 +52,7 @@ This fleet is the audited brain for our production consumer line: Nexus AI Labs 
 
 ## Try it
 
-- Demo video: https://youtu.be/NEW_ID  ← REPLACE with the new upload's ID
+- Demo video: https://youtu.be/lObQ02WJzBw
 - Live demo (Cloud Run): https://money-copilot-675241948019.asia-northeast1.run.app
 - Repo: https://github.com/gudax/nexus-money-copilot
 - Suggested probes: "How much is Bitcoin right now?" · "Show me my account balance" · the 📷 sample-portfolio chip · and try to make it give investment advice.

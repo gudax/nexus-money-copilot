@@ -7,6 +7,10 @@ multi-agent fleet over real A2A, grounded in a live exchange, with every answer
 > 물어보면, 검증된 답만 돌아옵니다. — Ask anything about your money; only
 > verified answers come back.
 
+**Live demo:** [money-copilot…run.app](https://money-copilot-675241948019.asia-northeast1.run.app) ·
+**2½-min video:** [youtu.be/lObQ02WJzBw](https://youtu.be/lObQ02WJzBw) ·
+**Track 2 sibling:** [Sentinel Mesh](https://github.com/gudax/sentinel-mesh) (the verified-memory control plane this auditor's lineage comes from)
+
 Most finance chatbots will quote you a price from their training data and sound
 confident doing it. On day 0 of this build, ours did exactly that: an A2A worker
 crashed and the orchestrator **fabricated a Bitcoin price in the wrong currency
@@ -55,7 +59,7 @@ reaches the user.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt fastapi   # pinned: ADK 2.1.0 + google-genai 1.75.0
+pip install -r requirements.txt   # pinned: ADK 2.1.0 + google-genai 1.75.0
 
 # fleet (A2A workers + orchestrator checkpoint)
 export GOOGLE_GENAI_USE_VERTEXAI=1 GOOGLE_CLOUD_PROJECT=<proj> GOOGLE_CLOUD_LOCATION=global

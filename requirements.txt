@@ -3,3 +3,4 @@ google-genai==1.75.0
 mcp
 uvicorn
 httpx
+fastapi
