@@ -49,6 +49,13 @@ reaches the user.
   3%); buy/sell recommendations — imperative **and** soft advisory phrasing —
   and money-movement language are hard-blocked. The audit verdict ships with
   every API response and is rendered as a stamp on every answer card.
+- **Every number has a receipt**: the audit doesn't just say *verified* — it
+  returns, per displayed number, the exact raw exchange field that backs it
+  (`source` + `field` + matched value, via `auditor.build_receipts` +
+  `truth_log.read_since_tagged`). The web UI underlines every audited number;
+  tap one to open the live LMX response that proves it. Verification stops being
+  a badge you have to trust and becomes **evidence you can open** — the same
+  drill-to-the-source idea as our Track 2 entry, Sentinel Mesh.
 - **Vision, but never model arithmetic**: upload any brokerage screenshot and
   `fleet/vision_tools.py` splits the work — Gemini vision is trusted only to
   *read* (structured extraction, no invented numbers), then plain Python prices

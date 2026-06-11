@@ -110,13 +110,80 @@ def _tool_numbers(tool_outputs):
     return nums
 
 
-def audit(answer: str, tool_outputs: list, tolerance: float = 0.03) -> dict:
-    """Audit a final answer against this session's actual tool outputs."""
+def _match(n: float, t: float, tol: float) -> bool:
+    return t != 0 and abs(n - t) / max(abs(t), 1e-9) <= tol or n == t
+
+
+def _find_in(payload, n, tol, path=""):
+    """DFS a raw tool payload for a number matching `n`; return (field_path,
+    matched_value) for the first hit, else None. This is what backs a receipt:
+    the exact field of the exact exchange response a displayed number came from."""
+    if isinstance(payload, dict):
+        for k, v in payload.items():
+            r = _find_in(v, n, tol, f"{path}.{k}" if path else str(k))
+            if r:
+                return r
+    elif isinstance(payload, (list, tuple)):
+        for i, v in enumerate(payload):
+            r = _find_in(v, n, tol, f"{path}[{i}]")
+            if r:
+                return r
+    elif isinstance(payload, bool):
+        return None
+    elif isinstance(payload, (int, float)):
+        if _match(n, float(payload), tol):
+            return (path or "value", float(payload))
+    elif isinstance(payload, str):
+        for x in _numbers(payload):
+            if _match(n, x, tol):
+                return (path or "value", x)
+    return None
+
+
+def build_receipts(claimed, tagged_outputs, tol):
+    """For each displayed number, find the raw exchange response that proves it.
+
+    tagged_outputs: [{"source", "data"}] — the source-preserving truth window
+    (truth_log.read_since_tagged) plus any code-computed payloads. Returns a
+    receipt per claimed number: which source, which field, the raw matched value.
+    A number with no receipt would have been blocked by the numeric audit, so on a
+    PASS every receipt resolves — that is the point: nothing on screen is unbacked."""
+    receipts = []
+    for n in claimed:
+        hit = None
+        # Prefer the field that IS this number (exact), before any tolerance match —
+        # so a displayed price points at the exact candle field it came from, not
+        # merely a neighbouring value that happens to be within 3%.
+        for cur_tol in (0.0, tol):
+            for o in tagged_outputs:
+                tagged = isinstance(o, dict) and "source" in o and "data" in o
+                src = o["source"] if tagged else None
+                payload = o["data"] if tagged else o
+                found = _find_in(payload, n, cur_tol)
+                if found:
+                    hit = {"value": n, "source": src, "field": found[0],
+                           "matched_value": found[1]}
+                    break
+            if hit:
+                break
+        receipts.append(hit or {"value": n, "source": None, "field": None,
+                                 "matched_value": None})
+    return receipts
+
+
+def audit(answer: str, tool_outputs: list, tolerance: float = 0.03,
+          tagged_outputs: list | None = None) -> dict:
+    """Audit a final answer against this session's actual tool outputs.
+
+    tool_outputs: plain raw payloads (the numeric truth set — never source
+    strings, so a port number in a source tag can't masquerade as a price).
+    tagged_outputs (optional): [{"source","data"}] used ONLY to attach receipts;
+    when provided, the verdict carries a per-number provenance trail."""
     # 1. tripwire — deterministic, model-independent
     trips = sorted({p for p in TRIPWIRE if re.search(p, answer, re.I)})
     if trips:
         return {"verdict": "block", "reason": "tripwire", "tripwire": trips,
-                "unmatched": [], "checked": 0}
+                "unmatched": [], "checked": 0, "receipts": []}
 
     # 2. numeric audit (skip CHART_DATA blob — it is tool output passed through,
     #    and dates/years below money scale)
@@ -130,8 +197,10 @@ def audit(answer: str, tool_outputs: list, tolerance: float = 0.03) -> dict:
         if not ok:
             unmatched.append(n)
     verdict = "block" if unmatched else "pass"
+    receipts = build_receipts(claimed, tagged_outputs, tolerance) if tagged_outputs else []
     return {"verdict": verdict, "reason": "unverified numbers" if unmatched else "",
-            "tripwire": [], "unmatched": unmatched, "checked": len(claimed)}
+            "tripwire": [], "unmatched": unmatched, "checked": len(claimed),
+            "receipts": receipts}
 
 
 BLOCK_MESSAGE = ("I held that answer back — its numbers didn't match the live data. "
@@ -195,5 +264,21 @@ if __name__ == "__main__":  # checkpoint: the day-0 incident must be caught
             failures.append((name, expected, v["verdict"]))
         print(f"{status} {name:18s} expected={expected:5s} got={v['verdict']:5s} "
               f"unmatched={v['unmatched']} tripwire={v['tripwire'][:2]}")
+    # --- receipts: every displayed number resolves to a raw exchange field ---
+    tagged = [{"source": "markets:/api/market/candles/BTCUSD",
+               "data": {"symbol": "BTCUSD", "price": 61399.55, "open": 61392.75}}]
+    rcv = audit("Bitcoin is currently $61,399.55.", [t["data"] for t in tagged],
+                tagged_outputs=tagged)
+    rcpt = rcv.get("receipts") or []
+    if not (rcv["verdict"] == "pass" and len(rcpt) == 1
+            and rcpt[0]["source"] == "markets:/api/market/candles/BTCUSD"
+            and rcpt[0]["field"] == "price" and rcpt[0]["matched_value"] == 61399.55):
+        failures.append(("receipt-resolves", "matched price field", rcpt))
+    else:
+        print(f"OK   {'receipt-resolves':18s} -> {rcpt[0]['source']} .{rcpt[0]['field']}={rcpt[0]['matched_value']}")
+    # a tripwire/blocked answer carries no receipts (nothing to vouch for)
+    if audit("You should buy now.", [], tagged_outputs=tagged).get("receipts") != []:
+        failures.append(("blocked-no-receipts", [], "non-empty"))
+
     print("CHECKPOINT:", "GREEN" if not failures else f"RED {failures}")
     raise SystemExit(0 if not failures else 1)

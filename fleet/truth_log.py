@@ -61,3 +61,26 @@ def read_since(offset: int) -> list:
     except FileNotFoundError:
         pass
     return out
+
+
+def read_since_tagged(offset: int) -> list:
+    """Like read_since, but keeps the source tag: [{"source", "data"}].
+
+    The source is the exact tool seam the payload came from
+    (e.g. "markets:/api/market/candles/BTCUSD") — this is what lets the auditor
+    attach a *receipt* to every audited number: not just "verified", but
+    "verified against THIS raw exchange response."
+    """
+    out = []
+    try:
+        with PATH.open("r", encoding="utf-8") as f:
+            f.seek(offset)
+            for line in f:
+                try:
+                    e = json.loads(line)
+                    out.append({"source": e.get("source"), "data": e["data"]})
+                except (ValueError, KeyError):
+                    pass
+    except FileNotFoundError:
+        pass
+    return out

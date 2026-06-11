@@ -97,6 +97,22 @@
 
   .meta{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
 
+  /* ── provenance receipts: every audited number is clickable ── */
+  .rcpt{border-bottom:1.5px dotted var(--ok);cursor:pointer;color:var(--ink);font-weight:600;
+    background:linear-gradient(var(--ok-bg),var(--ok-bg)) no-repeat;background-size:0% 100%;
+    background-position:0 100%;transition:background-size .18s;border-radius:2px}
+  .rcpt:hover,.rcpt:focus{background-size:100% 100%;outline:none}
+  .audit .hint{color:var(--ok);font-weight:500}
+  .receipt-pop{margin-top:12px;border:1px solid var(--ok-border);background:var(--ok-bg);
+    border-radius:var(--r);padding:13px 15px;font-family:var(--mono);font-size:12.5px;
+    color:var(--ink-2);line-height:1.65}
+  .receipt-pop .h{font-weight:600;color:var(--ok);display:flex;align-items:center;gap:8px;
+    font-size:12.5px;letter-spacing:.02em}
+  .receipt-pop .h .x{margin-left:auto;cursor:pointer;color:var(--ink-3);font-weight:400}
+  .receipt-pop .row{margin-top:7px}
+  .receipt-pop .row .k{color:var(--ink-3)}
+  .receipt-pop b{color:var(--ink);font-weight:600}
+
   footer{margin-top:38px;font-family:var(--mono);font-size:12px;line-height:1.8;color:var(--ink-3)}
   footer b{color:var(--ink-2);font-weight:600}
 </style>
@@ -169,6 +185,57 @@ function chartSVG(data){
   </svg>`;
 }
 
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+
+function prettySource(src){
+  if(!src) return "tool output";
+  if(src.startsWith("markets:")){
+    const sym = (src.match(/\/([A-Z0-9]+)$/)||[])[1];
+    if(/candles/.test(src)) return `LMX exchange — ${sym?sym+" ":""}live candle`;
+    if(/instruments/.test(src)) return "LMX exchange — instruments";
+    if(/news/.test(src)) return "LMX exchange — market news";
+    if(/calendar/.test(src)) return "LMX exchange — economic calendar";
+    if(/financing/.test(src)) return `LMX exchange — ${sym?sym+" ":""}financing`;
+    return "LMX exchange — live feed";
+  }
+  if(src.startsWith("vision:value_holdings")) return "vision pipeline — priced by code";
+  if(src.startsWith("vision:")) return "vision pipeline — screenshot extract";
+  return src;
+}
+
+// Wrap every displayed number that has a resolved receipt so it can be tapped to
+// reveal the raw exchange field that proves it. Operates on already-escaped HTML.
+function annotate(html, receipts){
+  const resolved = (receipts||[]).filter(r => r && r.source != null && r.matched_value != null);
+  if(!resolved.length) return html;
+  return html.replace(/(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+\.\d+|\d{3,})/g, m => {
+    const val = parseFloat(m.replace(/,/g,""));
+    const rc = resolved.find(r => {
+      const mv = r.matched_value;
+      return (Math.abs(mv - val) / Math.max(Math.abs(mv), 1e-9) <= 0.0015) || r.value === val;
+    });
+    if(!rc) return m;
+    return `<span class="rcpt" tabindex="0" data-src="${esc(rc.source)}" `
+         + `data-field="${esc(rc.field||"value")}" data-mv="${esc(rc.matched_value)}">${m}</span>`;
+  });
+}
+
+function showReceipt(el){
+  const turn = el.closest(".turn");
+  turn.querySelectorAll(".receipt-pop").forEach(p => p.remove());
+  const src = el.dataset.src, field = el.dataset.field, mv = el.dataset.mv;
+  const pop = document.createElement("div");
+  pop.className = "receipt-pop";
+  pop.innerHTML = `<div class="h">✓ Receipt — matched against the live feed
+      <span class="x">✕ close</span></div>
+    <div class="row"><span class="k">shown value</span> · <b>${el.textContent}</b></div>
+    <div class="row"><span class="k">source</span> · <b>${esc(prettySource(src))}</b></div>
+    <div class="row"><span class="k">raw field</span> · <b>${esc(field)}</b> = <b>${esc(mv)}</b></div>
+    <div class="row"><span class="k">check</span> · within 3% of what the exchange actually returned — no model in the loop</div>`;
+  el.closest(".a").insertAdjacentElement("afterend", pop);
+  pop.querySelector(".x").addEventListener("click", () => pop.remove());
+}
+
 let attached = null;  // {b64, mime, dataUrl}
 
 function setAttached(a){
@@ -214,13 +281,15 @@ async function ask(question, image){
     turn.querySelector(".thinking").remove();
     const safe = d.answer.replace(/&/g,"&amp;").replace(/</g,"&lt;")
       .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/^\* /gm, "· ");
+    const nReceipts = (a.receipts||[]).filter(r => r && r.source != null).length;
     turn.insertAdjacentHTML("beforeend", `
-      <div class="a">${safe}</div>
+      <div class="a">${annotate(safe, a.receipts)}</div>
       ${d.chart_data ? `<div class="chart"><div class="cap">Recent trend</div>${chartSVG(d.chart_data)}</div>` : ""}
       <div class="audit">
         <span class="verdict ${ok ? "ok" : "no"}">${ok ? "✓ Verified" : "✕ Blocked"}</span>
         <span class="sep">·</span>
         <span>${a.numbers_checked ?? 0} numbers checked</span>
+        ${nReceipts ? `<span class="sep">·</span><span class="hint">tap any number for its receipt</span>` : ""}
         <span class="sep">·</span>
         <span>${(a.specialists||[]).join("+") || "—"} agent</span>
         <span class="sep">·</span>
@@ -240,6 +309,17 @@ $("go").addEventListener("click", () => {
 });
 $("q").addEventListener("keydown", e => { if (e.key === "Enter") $("go").click(); });
 document.querySelectorAll(".chip:not(#sample-chip)").forEach(c => c.addEventListener("click", () => ask(c.textContent)));
+
+// receipts: tap any audited number to reveal the raw exchange field that proves it
+feed.addEventListener("click", e => {
+  const el = e.target.closest(".rcpt");
+  if (el) showReceipt(el);
+});
+feed.addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("rcpt")) {
+    e.preventDefault(); showReceipt(e.target);
+  }
+});
 
 $("attach").addEventListener("click", () => $("file").click());
 $("file").addEventListener("change", async e => {

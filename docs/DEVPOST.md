@@ -41,6 +41,7 @@ The second challenge was arithmetic: a model that values your portfolio is a mod
 - Ask "Should I buy now?" — the copilot refuses, by design; the tripwire makes the refusal structural, not stylistic (and it fires in English *and* Korean — a deliberate multilingual defense).
 - The fabrication incident from day 0 is now a regression test the auditor must catch (`python fleet/auditor.py`).
 - A judge can verify everything in one click: the live demo has a sample-screenshot chip — vision reads it, code prices it live, the audit badge shows how many numbers were checked.
+- **Every number has a receipt.** The audit doesn't just stamp *verified* — tap any number in an answer and it opens the exact raw exchange field that proves it (source + field + matched value). Verification you can open, not a badge you have to trust.
 
 ## What we learned
 

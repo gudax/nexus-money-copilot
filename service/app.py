@@ -62,6 +62,7 @@ async def ask(body: AskIn):
     session = await _runner.session_service.create_session(
         app_name=_runner.app_name, user_id=body.user_id)
     texts, tool_outputs, specialists = [], [], set()
+    vision_tagged = []  # source-tagged vision payloads, for receipts
 
     # Vision path: read the screenshot (model), price it (deterministic code),
     # and hand the orchestrator ONLY pre-verified numbers to narrate. Both
@@ -79,6 +80,8 @@ async def ask(body: AskIn):
                               "elapsed_ms": round((time.perf_counter() - t0) * 1000)}}
         specialists.add("vision")
         tool_outputs += [extract, valuation]
+        vision_tagged += [{"source": "vision:extract_holdings", "data": extract},
+                          {"source": "vision:value_holdings", "data": valuation}]
         question = (
             "The user attached a portfolio screenshot, and the system has already "
             "read it and valued it.\n"
@@ -110,7 +113,8 @@ async def ask(body: AskIn):
     # so a worker hallucination cannot vouch for itself. If a worker crashed
     # or fabricated without touching a tool, the window is empty and any
     # money-scale number in the answer fails the audit (fail closed).
-    tool_outputs += truth_log.read_since(truth_pos)
+    tagged = truth_log.read_since_tagged(truth_pos)
+    tool_outputs += [t["data"] for t in tagged]
 
     # split chart payload out of the prose
     chart = None
@@ -122,7 +126,7 @@ async def ask(body: AskIn):
             chart = None
         answer = answer.replace(m.group(0), "").strip()
 
-    verdict = auditor.audit(answer, tool_outputs)
+    verdict = auditor.audit(answer, tool_outputs, tagged_outputs=vision_tagged + tagged)
     if verdict["verdict"] == "block":
         answer, chart = auditor.block_message(verdict), None
 
@@ -135,6 +139,8 @@ async def ask(body: AskIn):
             "numbers_checked": verdict.get("checked", 0),
             "specialists": sorted(specialists),
             "elapsed_ms": round((time.perf_counter() - t0) * 1000),
+            # a receipt per displayed number: the raw exchange field that proves it
+            "receipts": verdict.get("receipts", []),
         },
     }
 
