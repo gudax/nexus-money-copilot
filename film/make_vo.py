@@ -45,9 +45,12 @@ SEGMENTS = [
     "Pass: it ships, stamped. Fail: it never reaches the user.",
     # S4 — live clip A
     "Live on Cloud Run. A price question routes to the markets specialist; a "
-    "balance question routes to the account specialist. Every answer ships "
-    "with its audit — the verdict, how many numbers were checked, and which "
-    "agents produced them.",
+    "balance question routes to the account specialist. And every number is a "
+    "receipt — tap it, and the answer opens the exact exchange field that proves "
+    "it: the source, the field, the matched value, pulled straight from the live "
+    "feed. Verification you can open, not a badge you have to trust. The audit "
+    "stamp rides on every card, and nothing on screen is a number the tools "
+    "did not actually return.",
     # S5 — vision clip B
     "Now the part most copilots get wrong. Upload a screenshot of any "
     "brokerage app. Gemini vision is trusted only to read — structured "

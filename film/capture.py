@@ -18,7 +18,7 @@ from playwright.sync_api import sync_playwright
 FILM = pathlib.Path(__file__).resolve().parent
 ROOT = FILM.parent
 VO = FILM / "vo"
-PORT = 8096
+PORT = 8077
 
 
 def sh(*args):

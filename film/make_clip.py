@@ -21,11 +21,11 @@ URL = "https://money-copilot-675241948019.asia-northeast1.run.app"
 OUT = pathlib.Path(__file__).resolve().parent / "assets"
 SIZE = {"width": 1660, "height": 900}
 
-# (clip name, [questions], use_sample_chip, target seconds after speedup)
+# (clip name, [questions], use_sample_chip, target seconds after speedup, show_receipt)
 TAKES = [
-    ("a", ["How much is Bitcoin right now?", "Show me my account balance"], False, 19.0),
-    ("b", [], True, 21.0),
-    ("c", ["Should I buy Bitcoin now?"], False, 11.0),
+    ("a", ["How much is Bitcoin right now?", "Show me my account balance"], False, 26.0, True),
+    ("b", [], True, 21.0, False),
+    ("c", ["Should I buy Bitcoin now?"], False, 11.0, False),
 ]
 
 
@@ -39,7 +39,7 @@ def wait_answer(pg, n, expect="Verified"):
         assert expect in badge, f"clip take broken: {badge!r} (wanted {expect})"
 
 
-def record(p, name, questions, sample, target):
+def record(p, name, questions, sample, target, show_receipt=False):
     b = p.chromium.launch()
     ctx = b.new_context(viewport=SIZE, record_video_dir=str(OUT / "_clipraw"),
                         record_video_size=SIZE)
@@ -53,7 +53,7 @@ def record(p, name, questions, sample, target):
         n += 1
         wait_answer(pg, n)
         pg.wait_for_timeout(3200)  # linger on the table + badge
-    for q in questions:
+    for qi, q in enumerate(questions):
         pg.fill("#q", "")
         pg.click("#q")
         pg.type("#q", q, delay=30)
@@ -61,6 +61,15 @@ def record(p, name, questions, sample, target):
         pg.click("#go")
         n += 1
         wait_answer(pg, n, expect=expect)
+        # On the first answer, open a provenance receipt: tap the underlined number
+        # and linger on the popover (source / exchange field / matched value).
+        if show_receipt and qi == 0:
+            pg.wait_for_timeout(1100)
+            rc = pg.query_selector(".turn .rcpt")
+            if rc:
+                rc.click()
+                print("  receipt popover opened", flush=True)
+                pg.wait_for_timeout(3200)  # linger on the receipt
         pg.wait_for_timeout(2600)
     pg.wait_for_timeout(900)
     video = pg.video
@@ -88,8 +97,8 @@ if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
     meta = {}
     with sync_playwright() as p:
-        for name, qs, sample, target in TAKES:
+        for name, qs, sample, target, show_rc in TAKES:
             print(f"take {name}:", flush=True)
-            meta[name] = record(p, name, qs, sample, target)
+            meta[name] = record(p, name, qs, sample, target, show_rc)
     (OUT / "clip-meta.json").write_text(json.dumps(meta, indent=1))
     print("all clips:", json.dumps(meta))
