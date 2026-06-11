@@ -67,9 +67,14 @@ def get_quote(symbol: str) -> dict:
     if not candles:
         return {"symbol": symbol.upper(), "error": "no data — check symbol via list_instruments"}
     last = candles[-1]
-    return {"symbol": symbol.upper(), "price": last.get("close"), "open": last.get("open"),
-            "high": last.get("high"), "low": last.get("low"),
-            "volume": last.get("volume"), "timestamp": last.get("timestamp")}
+    quote = {"symbol": symbol.upper(), "price": last.get("close"), "open": last.get("open"),
+             "high": last.get("high"), "low": last.get("low"),
+             "volume": last.get("volume"), "timestamp": last.get("timestamp")}
+    # Record the NORMALIZED quote too (not just raw candles): a displayed current
+    # price then cites the named `price` field, not an OHLC neighbour that shares
+    # the digits — receipts point at a field a human recognizes.
+    truth_log.record(f"markets:quote:{symbol.upper()}", quote)
+    return quote
 
 
 def get_candles(symbol: str, timeframe: str = "1h", limit: int = 48) -> dict:

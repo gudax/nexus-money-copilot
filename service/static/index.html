@@ -230,8 +230,8 @@ function showReceipt(el){
       <span class="x">✕ close</span></div>
     <div class="row"><span class="k">shown value</span> · <b>${el.textContent}</b></div>
     <div class="row"><span class="k">source</span> · <b>${esc(prettySource(src))}</b></div>
-    <div class="row"><span class="k">raw field</span> · <b>${esc(field)}</b> = <b>${esc(mv)}</b></div>
-    <div class="row"><span class="k">check</span> · within 3% of what the exchange actually returned — no model in the loop</div>`;
+    <div class="row"><span class="k">exchange field</span> · <b>${esc(field)}</b> = <b>${esc(mv)}</b></div>
+    <div class="row"><span class="k">check</span> · this number was matched to the exchange's own value — no model in the loop</div>`;
   el.closest(".a").insertAdjacentElement("afterend", pop);
   pop.querySelector(".x").addEventListener("click", () => pop.remove());
 }

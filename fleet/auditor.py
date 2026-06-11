@@ -114,60 +114,74 @@ def _match(n: float, t: float, tol: float) -> bool:
     return t != 0 and abs(n - t) / max(abs(t), 1e-9) <= tol or n == t
 
 
-def _find_in(payload, n, tol, path=""):
-    """DFS a raw tool payload for a number matching `n`; return (field_path,
-    matched_value) for the first hit, else None. This is what backs a receipt:
-    the exact field of the exact exchange response a displayed number came from."""
+# Semantically meaningful leaf names, in PREFERENCE ORDER — a displayed "current
+# price" should cite `price` first, then `close`; never a neighbouring OHLC value
+# (`open`/`high`/`low`) that merely shares the digits. OHLC names are deliberately
+# excluded so a current price can never cite the candle's `low`.
+_PREFERRED_LEAVES = ("price", "balance", "equity", "value", "market_value", "last",
+                     "amount", "total", "pnl", "unrealized", "realized", "cost", "close")
+
+
+def _leaf(path):
+    return path.rsplit(".", 1)[-1].split("[")[0].lower()
+
+
+def _pref_rank(field):
+    leaf = _leaf(field)
+    try:
+        return _PREFERRED_LEAVES.index(leaf)
+    except ValueError:
+        return len(_PREFERRED_LEAVES)
+
+
+def _collect(payload, n, tol, path="", out=None):
+    """Collect EVERY (field_path, value) in a payload whose number matches `n`."""
+    if out is None:
+        out = []
     if isinstance(payload, dict):
         for k, v in payload.items():
-            r = _find_in(v, n, tol, f"{path}.{k}" if path else str(k))
-            if r:
-                return r
+            _collect(v, n, tol, f"{path}.{k}" if path else str(k), out)
     elif isinstance(payload, (list, tuple)):
         for i, v in enumerate(payload):
-            r = _find_in(v, n, tol, f"{path}[{i}]")
-            if r:
-                return r
+            _collect(v, n, tol, f"{path}[{i}]", out)
     elif isinstance(payload, bool):
-        return None
+        pass
     elif isinstance(payload, (int, float)):
         if _match(n, float(payload), tol):
-            return (path or "value", float(payload))
+            out.append((path or "value", float(payload)))
     elif isinstance(payload, str):
         for x in _numbers(payload):
             if _match(n, x, tol):
-                return (path or "value", x)
-    return None
+                out.append((path or "value", x))
+    return out
 
 
 def build_receipts(claimed, tagged_outputs, tol):
-    """For each displayed number, find the raw exchange response that proves it.
+    """For each displayed number, cite the tool field that proves it.
 
     tagged_outputs: [{"source", "data"}] — the source-preserving truth window
-    (truth_log.read_since_tagged) plus any code-computed payloads. Returns a
-    receipt per claimed number: which source, which field, the raw matched value.
-    A number with no receipt would have been blocked by the numeric audit, so on a
-    PASS every receipt resolves — that is the point: nothing on screen is unbacked."""
+    (truth_log.read_since_tagged) plus any code-computed payloads. For each number
+    we gather ALL matching fields, then pick the best: an EXACT value match beats a
+    within-tolerance one, and a semantically-named field (`price`, `close`,
+    `balance`) beats an arbitrary OHLC neighbour. So a current price cites `price`,
+    not the candle's `low` that happened to share the digits."""
     receipts = []
     for n in claimed:
-        hit = None
-        # Prefer the field that IS this number (exact), before any tolerance match —
-        # so a displayed price points at the exact candle field it came from, not
-        # merely a neighbouring value that happens to be within 3%.
-        for cur_tol in (0.0, tol):
-            for o in tagged_outputs:
-                tagged = isinstance(o, dict) and "source" in o and "data" in o
-                src = o["source"] if tagged else None
-                payload = o["data"] if tagged else o
-                found = _find_in(payload, n, cur_tol)
-                if found:
-                    hit = {"value": n, "source": src, "field": found[0],
-                           "matched_value": found[1]}
-                    break
-            if hit:
-                break
-        receipts.append(hit or {"value": n, "source": None, "field": None,
-                                 "matched_value": None})
+        cands = []  # (exact, pref_rank, source, field, value)
+        for o in tagged_outputs:
+            tagged = isinstance(o, dict) and "source" in o and "data" in o
+            src = o["source"] if tagged else None
+            payload = o["data"] if tagged else o
+            for field, val in _collect(payload, n, tol):
+                exact = 1 if val == n else 0
+                cands.append((exact, _pref_rank(field), src, field, val))
+        if cands:
+            # exact value first; then the best-named field (lowest pref rank)
+            cands.sort(key=lambda c: (-c[0], c[1]))
+            _, _, src, field, val = cands[0]
+            receipts.append({"value": n, "source": src, "field": field, "matched_value": val})
+        else:
+            receipts.append({"value": n, "source": None, "field": None, "matched_value": None})
     return receipts
 
 

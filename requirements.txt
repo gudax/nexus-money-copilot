@@ -1,5 +1,10 @@
 google-adk[a2a]==2.1.0
 google-genai==1.75.0
+# a2a JSONRPC server needs these; they came in transitively via mcp before — pin
+# them explicitly so the A2A workers can never fail to start at boot again.
+a2a-sdk[http-server]
+starlette
+sse-starlette
 mcp
 uvicorn
 httpx
