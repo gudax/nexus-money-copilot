@@ -8,7 +8,7 @@ multi-agent fleet over real A2A, grounded in a live exchange, with every answer
 > verified answers come back.
 
 **Live demo:** [money-copilot…run.app](https://money-copilot-675241948019.asia-northeast1.run.app) ·
-**2½-min video:** [youtu.be/lObQ02WJzBw](https://youtu.be/lObQ02WJzBw) ·
+**2½-min video:** [youtu.be/7OnYuCPkkOU](https://youtu.be/7OnYuCPkkOU) ·
 **Track 2 sibling:** [Sentinel Mesh](https://github.com/gudax/sentinel-mesh) (the verified-memory control plane this auditor's lineage comes from)
 
 Most finance chatbots will quote you a price from their training data and sound
